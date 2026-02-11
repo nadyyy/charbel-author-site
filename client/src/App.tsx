@@ -1,4 +1,5 @@
-import { Routes, Route } from "react-router-dom";
+import { Route, Switch } from "wouter";
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -18,14 +19,16 @@ function AppRoutes() {
   useScrollToTop();
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/books" element={<Books />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/books" component={Books} />
+      <Route path="/about" component={About} />
+      <Route path="/contact" component={Contact} />
+      <Route path="/cart" component={Cart} />
+
+      {/* catch-all */}
+      <Route component={NotFound} />
+    </Switch>
   );
 }
 
@@ -43,7 +46,6 @@ export default function App() {
             </main>
             <Footer />
           </div>
-
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

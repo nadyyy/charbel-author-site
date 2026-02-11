@@ -1,7 +1,6 @@
-// src/components/Footer.tsx  (replace entire file with this)
+// src/components/Footer.tsx
 import { Mail, Instagram, Phone } from "lucide-react";
-import { Link } from "react-router-dom";
-
+import { Link } from "wouter";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -30,7 +29,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  to="/"
+                  href="/"
                   className="text-gray-300 hover:text-[#d4af37] transition-colors"
                 >
                   Home
@@ -38,7 +37,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/books"
+                  href="/books"
                   className="text-gray-300 hover:text-[#d4af37] transition-colors"
                 >
                   Books
@@ -46,7 +45,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/about"
+                  href="/about"
                   className="text-gray-300 hover:text-[#d4af37] transition-colors"
                 >
                   About
@@ -54,7 +53,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/contact"
+                  href="/contact"
                   className="text-gray-300 hover:text-[#d4af37] transition-colors"
                 >
                   Contact
@@ -62,7 +61,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/cart"
+                  href="/cart"
                   className="text-gray-300 hover:text-[#d4af37] transition-colors"
                 >
                   Cart

@@ -2,7 +2,8 @@ import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation } from "wouter";
+
 
 const GOVERNORATES = [
   "Beirut",
@@ -82,7 +83,8 @@ Total: $${total}
 
     window.open(url, "_blank");
   };
-const navigate = useNavigate();
+const [, setLocation] = useLocation();
+
 
   /* EMPTY CART */
   if (state.items.length === 0) {
@@ -94,12 +96,12 @@ const navigate = useNavigate();
             Discover Charbel Abdallah’s published works.
           </p>
           <Button
-            onClick={() => navigate("/books")}
+  onClick={() => setLocation("/books")}
+  className="bg-black text-white hover:bg-[#d4af37] hover:text-black px-8"
+>
+  Browse Books
+</Button>
 
-            className="bg-black text-white hover:bg-[#d4af37] hover:text-black px-8"
-          >
-            Browse Books
-          </Button>
         </div>
       </div>
     );

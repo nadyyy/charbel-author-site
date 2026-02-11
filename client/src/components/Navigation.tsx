@@ -1,17 +1,17 @@
 import { useState } from "react";
 import { Menu, X, ShoppingBag } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
-import { Link } from "react-router-dom";
+import { Link } from "wouter";
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const { state } = useCart();
 
   const navLinks = [
-    { to: "/", label: "Home" },
-    { to: "/books", label: "Books" },
-    { to: "/about", label: "About" },
-    { to: "/contact", label: "Contact" },
+    { href: "/", label: "Home" },
+    { href: "/books", label: "Books" },
+    { href: "/about", label: "About" },
+    { href: "/contact", label: "Contact" },
   ];
 
   return (
@@ -20,7 +20,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link
-            to="/"
+            href="/"
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
             <img
@@ -42,8 +42,8 @@ export default function Navigation() {
           <div className="hidden md:flex gap-8 items-center">
             {navLinks.map((link) => (
               <Link
-                key={link.to}
-                to={link.to}
+                key={link.href}
+                href={link.href}
                 className="sans-body text-sm font-medium text-black hover:text-[#d4af37] transition-colors"
               >
                 {link.label}
@@ -52,8 +52,9 @@ export default function Navigation() {
 
             {/* Cart */}
             <Link
-              to="/cart"
+              href="/cart"
               className="relative hover:text-[#d4af37] transition-colors"
+              aria-label="Cart"
             >
               <ShoppingBag size={18} />
               {state.items.length > 0 && (
@@ -79,8 +80,8 @@ export default function Navigation() {
           <div className="md:hidden pb-4 border-t border-gray-100">
             {navLinks.map((link) => (
               <Link
-                key={link.to}
-                to={link.to}
+                key={link.href}
+                href={link.href}
                 onClick={() => setIsOpen(false)}
                 className="block py-3 text-sm font-medium text-black hover:text-[#d4af37]"
               >
@@ -89,7 +90,7 @@ export default function Navigation() {
             ))}
 
             <Link
-              to="/cart"
+              href="/cart"
               onClick={() => setIsOpen(false)}
               className="block py-3 text-sm font-medium text-black hover:text-[#d4af37]"
             >

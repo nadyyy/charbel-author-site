@@ -47,23 +47,25 @@ export default function Home() {
               <p className="sans-body text-gray-300 leading-relaxed max-w-md">
                 Welcome to the literary world of Charbel Abdallah, where words weave introspection, emotion, and resilience. Explore collections that resonate across silence and noise alike.
               </p>
-              <div className="flex gap-4 pt-4">
-                <Link href="/books" className="inline-block">
-                  <Button
-                    className="bg-[#d4af37] text-black hover:bg-white transition-colors font-medium px-8 py-3"
-                  >
-                    Explore Books
-                  </Button>
-                </Link>
-                <Link href="/contact" className="inline-block">
-                  <Button
-                    variant="outline"
-                    className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition-colors font-medium px-8 py-3"
-                  >
-                    Get in Touch
-                  </Button>
-                </Link>
-              </div>
+       
+
+<div className="flex gap-4 pt-4">
+  <Button
+    asChild
+    className="bg-[#d4af37] text-black hover:bg-white transition-colors font-medium px-8 py-3"
+  >
+    <Link href="/books">Explore Books</Link>
+  </Button>
+
+  <Button
+    asChild
+    variant="outline"
+    className="border-[#d4af37] text-[#d4af37] hover:bg-[#d4af37] hover:text-black transition-colors font-medium px-8 py-3"
+  >
+    <Link href="/contact">Get in Touch</Link>
+  </Button>
+</div>
+
             </div>
 
          {/* Featured Book Image */}
