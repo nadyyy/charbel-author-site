@@ -1,0 +1,15 @@
+
+- [x] Significantly reduce white space above page titles on Books, About, and Contact pages
+- [x] Ensure consistent title styling across all three internal pages
+- [x] Remove divider lines and simplify page title layouts
+- [x] Re-add gold divider lines under "Published Works" and "Get in Touch" titles
+- [x] Update contact information with real email address
+- [x] Update phone number to +961 76 640164
+- [x] Update location to Batroun, Lebanon
+- [x] Configure Buy Now buttons to send orders to real email
+- [x] Configure contact form to send messages to real email
+- [x] Update "Buy Now" buttons to open WhatsApp instead of email
+- [ ] Fix all remaining "hello@charbel.com" references in footer and FAQ sections
+- [x] Fix all "hello@charbel.com" references to "charbelabdallah@gmail.com" in footer and FAQ sections
+- [x] Change WhatsApp number in Buy Now buttons to +961 76 640164
+- [x] Update website meta description to sound more natural and personal
