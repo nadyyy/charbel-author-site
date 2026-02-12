@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useState } from "react";
 
 /**
  * Design: Minimalist Luxury
@@ -53,7 +54,73 @@ const books: Book[] = [
 ];
 
 export default function Books() {
-  const { addItem } = useCart();
+ const { addBookWithGift } = useCart();
+
+
+  // ✅ Freebie picker state
+  const [freebieOpen, setFreebieOpen] = useState(false);
+  const [pendingBook, setPendingBook] = useState<Book | null>(null);
+  const [selectedFreebieId, setSelectedFreebieId] = useState<string>("");
+
+
+  // ✅ Match your Accessories titles exactly
+const FREEBIES: Record<number, { id: string; title: string; image: string }[]> = {
+  1: [
+    { id: "armageddon-insert", title: "Armageddon Insert", image: "/accessories/armageddon-insert.jpeg" },
+    { id: "judas-insert", title: "Judas Insert", image: "/accessories/judas-insert.jpeg" },
+    { id: "oblivion-insert", title: "Oblivion Insert", image: "/accessories/oblivion-insert.jpeg" },
+  ],
+  2: [
+    { id: "king-bookmark", title: "King Bookmark", image: "/accessories/king-bookmark.jpeg" },
+    { id: "lord-bookmark", title: "Lord Bookmark", image: "/accessories/lord-bookmark.jpeg" },
+    { id: "poet-bookmark", title: "Poet Bookmark", image: "/accessories/poet-bookmark.jpeg" },
+    { id: "soldier-bookmark", title: "Soldier Bookmark", image: "/accessories/soldier-bookmark.jpeg" },
+  ],
+};
+
+
+
+  const openFreebiePicker = (book: Book) => {
+  const options = FREEBIES[book.id];
+
+  // no freebies -> do nothing special (book has freebies in your current setup, so this is just safe)
+  if (!options || options.length === 0) {
+    // If you want “no freebies” books to still add normally, you can add a normal addItem flow here.
+    return;
+  }
+
+  setPendingBook(book);
+  setSelectedFreebieId(options[0].id); // default option
+  setFreebieOpen(true);
+};
+
+  const confirmFreebie = () => {
+  if (!pendingBook) return;
+
+  const gift = FREEBIES[pendingBook.id].find((g) => g.id === selectedFreebieId);
+  if (!gift) return;
+
+  addBookWithGift(
+    {
+      id: String(pendingBook.id),
+      title: pendingBook.title,
+      price: parseInt(pendingBook.price.replace("$", ""), 10),
+      image: pendingBook.image,
+      kind: "book",
+    },
+    {
+      id: gift.id,
+      title: gift.title,
+      image: gift.image,
+    }
+  );
+
+  setFreebieOpen(false);
+  setPendingBook(null);
+};
+const selectedGift =
+  pendingBook ? FREEBIES[pendingBook.id].find((g) => g.id === selectedFreebieId) : null;
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -111,14 +178,7 @@ export default function Books() {
                   {book.available ? (
                     <Button
                       className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
-                      onClick={() =>
-                        addItem({
-                          id: book.id,
-                          title: book.title,
-                          price: parseInt(book.price.replace("$", "")),
-                          image: book.image,
-                        })
-                      }
+                      onClick={() => openFreebiePicker(book)}
                     >
                       Add to Cart
                     </Button>
@@ -136,6 +196,112 @@ export default function Books() {
           </div>
         </div>
       </section>
+
+      {/* ✅ Freebie Modal */}
+      {freebieOpen && pendingBook && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center px-4">
+          {/* backdrop */}
+          <button
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setFreebieOpen(false)}
+            aria-label="Close"
+          />
+
+          {/* modal */}
+          <div className="relative w-full max-w-3xl bg-white border border-gray-100 shadow-xl p-5 md:p-8 max-h-[85vh] overflow-y-auto">
+
+
+            <h3 className="serif-title text-2xl text-black mb-2">
+              Choose your free gift
+            </h3>
+            <p className="sans-body text-gray-600 text-sm mb-6">
+              Included with{" "}
+              <span className="font-medium text-black">{pendingBook.title}</span>
+              .
+            </p>
+
+           <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] gap-5">
+  {/* options */}
+  <div className="space-y-3 order-1">
+    {FREEBIES[pendingBook.id].map((opt) => {
+      const active = selectedFreebieId === opt.id;
+
+      return (
+        <label
+          key={opt.id}
+          className={`flex items-center gap-4 cursor-pointer rounded-md border p-3 transition ${
+            active ? "border-black bg-gray-50" : "border-gray-100 hover:bg-gray-50"
+          }`}
+        >
+          <input
+            type="radio"
+            checked={active}
+            onChange={() => setSelectedFreebieId(opt.id)}
+          />
+
+           <div className="h-16 w-16 shrink-0 rounded bg-white border border-gray-100 shadow-sm flex items-center justify-center overflow-hidden">
+  <img
+    src={opt.image}
+    alt={opt.title}
+    className={`h-full w-full object-contain ${
+      opt.id === "judas-insert" || opt.id === "oblivion-insert"
+        ? "scale-[1.35]"
+        : ""
+    }`}
+  />
+</div>
+
+
+          <span className="sans-body text-sm text-black">{opt.title}</span>
+        </label>
+      );
+    })}
+  </div>
+
+  {/* preview */}
+  <div className="order-2 md:order-none rounded-md border border-gray-100 bg-gray-50 p-4">
+    <p className="text-xs uppercase tracking-wide text-gray-500 mb-3">
+      Preview
+    </p>
+
+    <div className="w-full aspect-[4/3] md:aspect-[3/4] rounded bg-white border border-gray-100 shadow-sm flex items-center justify-center overflow-hidden p-3">
+      {selectedGift ? (
+        <img
+          src={selectedGift.image}
+          alt={selectedGift.title}
+          className="h-full w-full object-contain"
+        />
+      ) : null}
+    </div>
+
+    <p className="mt-3 text-sm font-medium text-black">
+      {selectedGift?.title ?? ""}
+    </p>
+  </div>
+</div>
+
+
+
+           <div className="mt-6 flex gap-3 justify-end sticky bottom-0 bg-white pt-4 border-t border-gray-100">
+
+              <Button
+                variant="outline"
+                onClick={() => setFreebieOpen(false)}
+                className="border-black text-black hover:bg-black hover:text-white"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                onClick={confirmFreebie}
+                className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
+              >
+                Add to Cart
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Testimonials Section */}
       <section className="bg-gray-50 py-16 md:py-24">

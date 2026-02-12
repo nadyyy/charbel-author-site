@@ -13,6 +13,7 @@ import Books from "@/pages/Books";
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import Cart from "@/pages/Cart";
+import Accessories from "@/pages/Accessories";
 import NotFound from "@/pages/NotFound";
 
 function AppRoutes() {
@@ -25,6 +26,7 @@ function AppRoutes() {
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
       <Route path="/cart" component={Cart} />
+      <Route path="/accessories" component={Accessories} />
 
       {/* catch-all */}
       <Route component={NotFound} />

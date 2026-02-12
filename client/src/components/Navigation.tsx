@@ -10,8 +10,11 @@ export default function Navigation() {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/books", label: "Books" },
+    { href: "/accessories", label: "Accessories" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
+   
+
   ];
 
   return (
