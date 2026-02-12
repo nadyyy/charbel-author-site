@@ -18,7 +18,8 @@ export const onRequestPost = async (context: any) => {
       .join("\n");
 
     await resend.emails.send({
-      from: "orders@yourdomain.com", // must match domain verified in Resend
+      from: "onboarding@resend.dev",
+ // must match domain verified in Resend
       to: "nady.tahan19@gmail.com",
       subject: "New Order",
       text: `
