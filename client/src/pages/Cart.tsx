@@ -135,42 +135,41 @@ export default function Cart() {
       (state.governorate && city.trim() && address.trim()));
 
   // ✅ WHATSAPP
-  const handlePlaceOrder = () => {
-    if (!isValid) return;
+  const handlePlaceOrder = async () => {
+  if (!isValid) return;
 
-    const itemsText = state.items
-      .map((i) => {
-        const totalOrFree = isGift(i) ? "FREE" : `$${i.price * i.quantity}`;
-        const giftTag = isGift(i) ? " (GIFT)" : "";
-        const withBook =
-          isGift(i) && giftFor(i) ? `\n  ↳ Included with ${giftFor(i)}` : "";
-        return `• ${i.title}${giftTag} × ${i.quantity} = ${totalOrFree}${withBook}`;
-      })
-      .join("\n");
+  const confirm = window.confirm(
+    "Are you sure you want to place this order?"
+  );
+  if (!confirm) return;
 
-    const message = `
-New Order 📦
+  const res = await fetch("/api/order", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      firstName,
+      lastName,
+      phone,
+      email,
+      deliveryMethod: state.deliveryMethod,
+      governorate: state.governorate,
+      city,
+      address,
+      items: state.items,
+      subtotal,
+      deliveryCost,
+      total,
+    }),
+  });
 
-Name: ${firstName} ${lastName}
-Phone: ${phone}
-Email: ${email || "-"}
+  if (res.ok) {
+    alert("Order placed successfully!");
+    clearCart();
+  } else {
+    alert("Something went wrong. Please try again.");
+  }
+};
 
-Delivery: ${state.deliveryMethod}
-Region: ${state.governorate || "Pickup"}
-City: ${city || "-"}
-Address: ${address || "-"}
-
-Order:
-${itemsText}
-
-Subtotal: $${subtotal}
-Delivery: $${deliveryCost}
-Total: $${total}
-`;
-
-    const url = `https://wa.me/96176640164?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
-  };
 
   const [, setLocation] = useLocation();
 
