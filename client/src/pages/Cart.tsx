@@ -68,6 +68,11 @@ export default function Cart() {
   const [pendingBookItem, setPendingBookItem] = useState<any>(null);
   const [selectedFreebieId, setSelectedFreebieId] = useState("");
   const [clearOpen, setClearOpen] = useState(false);
+  const [placeOrderOpen, setPlaceOrderOpen] = useState(false);
+const [placingOrder, setPlacingOrder] = useState(false);
+const [placeOrderError, setPlaceOrderError] = useState<string | null>(null);
+const [placeOrderSuccess, setPlaceOrderSuccess] = useState(false);
+
 
   const confirmClearCart = () => {
     clearCart();
@@ -141,46 +146,64 @@ export default function Cart() {
     (state.governorate && city.trim() && address.trim()));
 
 
-  // ✅ WHATSAPP
-  const handlePlaceOrder = async () => {
-  if (!isValid) return;
-  if (!isValidEmail) {
-  alert("Please enter a valid .com email address.");
-  return;
-}
+const submitOrder = async () => {
+  setPlacingOrder(true);
+  setPlaceOrderError(null);
 
+  try {
+    const res = await fetch("/api/order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        phone,
+        email,
+        deliveryMethod: state.deliveryMethod,
+        governorate: state.governorate,
+        city,
+        address,
+        items: state.items,
+        subtotal,
+        deliveryCost,
+        total,
+      }),
+    });
 
-  const confirm = window.confirm(
-    "Are you sure you want to place this order?"
-  );
-  if (!confirm) return;
+    const json = await res.json().catch(() => ({}));
 
-  const res = await fetch("/api/order", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      firstName,
-      lastName,
-      phone,
-      email,
-      deliveryMethod: state.deliveryMethod,
-      governorate: state.governorate,
-      city,
-      address,
-      items: state.items,
-      subtotal,
-      deliveryCost,
-      total,
-    }),
-  });
+    if (!res.ok) {
+      setPlaceOrderError(json?.error || "Something went wrong. Please try again.");
+      return;
+    }
 
-  if (res.ok) {
-    alert("Order placed successfully!");
+    setPlaceOrderSuccess(true);
     clearCart();
-  } else {
-    alert("Something went wrong. Please try again.");
+  } catch (e: any) {
+    setPlaceOrderError(e?.message || "Something went wrong. Please try again.");
+  } finally {
+    setPlacingOrder(false);
   }
 };
+
+const handlePlaceOrder = () => {
+  if (!isValid) return;
+
+  if (!isValidEmail) {
+    setPlaceOrderError("Please enter a valid .com email address.");
+    setPlaceOrderSuccess(false);
+    setPlaceOrderOpen(true);
+    return;
+  }
+
+  setPlaceOrderError(null);
+  setPlaceOrderSuccess(false);
+  setPlaceOrderOpen(true);
+};
+
+
+
+  
 
 
   const [, setLocation] = useLocation();
@@ -623,6 +646,80 @@ export default function Cart() {
           </div>
         </div>
       )}
+{/* PLACE ORDER MODAL */}
+{placeOrderOpen && (
+  <div className="fixed inset-0 z-[999] flex items-center justify-center px-4">
+    <button
+      className="absolute inset-0 bg-black/50"
+      onClick={() => {
+        if (!placingOrder) setPlaceOrderOpen(false);
+      }}
+      aria-label="Close"
+    />
+
+    <div className="relative w-full max-w-md bg-white border border-gray-100 shadow-xl p-6">
+      <h3 className="serif-title text-xl text-black mb-2">
+        {placeOrderSuccess ? "Order received ✅" : "Place this order?"}
+      </h3>
+
+      {!placeOrderSuccess ? (
+        <>
+          <p className="sans-body text-sm text-gray-600">
+            We’ll email you a confirmation. Please confirm you want to place this order.
+          </p>
+
+          {placeOrderError && (
+            <p className="mt-3 text-sm text-red-600">{placeOrderError}</p>
+          )}
+
+          <div className="mt-6 flex gap-3 justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setPlaceOrderOpen(false)}
+              disabled={placingOrder}
+              className="border-black text-black hover:bg-black hover:text-white"
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="button"
+              onClick={submitOrder}
+              disabled={placingOrder}
+              className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
+            >
+              {placingOrder ? "Placing..." : "Yes, place order"}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="sans-body text-sm text-gray-600">
+            {state.deliveryMethod === "pickup"
+              ? "We’ll contact you shortly to confirm pickup details."
+              : "We’ll contact you shortly to confirm delivery details."}
+          </p>
+
+          <div className="mt-6 flex justify-end">
+            <Button
+              type="button"
+              onClick={() => setPlaceOrderOpen(false)}
+              className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
+            >
+              Close
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
+
+
+
+
+
 
       {/* CLEAR CART MODAL */}
       {clearOpen && (

@@ -1,45 +1,41 @@
 import { Resend } from "resend";
 
-type AnyObj = Record<string, any>;
+type AnyRecord = Record<string, any>;
 
-const baseIdOf = (raw: any) => String(raw ?? "").split("::")[0];
-const isNumericId = (raw: any) => /^\d+$/.test(baseIdOf(raw));
+function isHttpUrl(s: string) {
+  return /^https?:\/\//i.test(s);
+}
 
-const money = (n: any) => {
-  const x = Number(n);
-  return Number.isFinite(x) ? x.toFixed(2).replace(/\.00$/, "") : "0";
-};
+function normalizeSiteUrl(siteUrl: string) {
+  const trimmed = (siteUrl || "").trim();
+  if (!trimmed) return "";
+  return trimmed.endsWith("/") ? trimmed.slice(0, -1) : trimmed;
+}
 
-const escapeHtml = (s: any) =>
-  String(s ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+function absoluteImageUrl(siteUrl: string, image: string | undefined | null) {
+  const img = (image || "").trim();
+  if (!img) return "";
+  if (isHttpUrl(img)) return img;
 
-const normalizeSiteUrl = (v: any) => {
-  const s = String(v ?? "").trim();
-  if (!s) return "";
-  return s.endsWith("/") ? s.slice(0, -1) : s;
-};
+  const base = normalizeSiteUrl(siteUrl);
+  if (!base) return img; // fallback: return relative if SITE_URL missing
+  return img.startsWith("/") ? `${base}${img}` : `${base}/${img}`;
+}
 
-const absImageUrl = (siteUrl: string, img: any) => {
-  const p = String(img ?? "").trim();
-  if (!p) return "";
-  if (p.startsWith("http://") || p.startsWith("https://")) return p;
-  if (!siteUrl) return "";
-  return p.startsWith("/") ? `${siteUrl}${p}` : `${siteUrl}/${p}`;
-};
+function money(n: any) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return "0";
+  return String(v);
+}
 
 export const onRequestPost = async (context: any) => {
   try {
     const { request, env } = context;
-    const data: AnyObj = await request.json();
+    const data: AnyRecord = await request.json();
 
     const resend = new Resend(env.RESEND_API_KEY);
 
-    // ---- REQUIRED EMAIL (your UI already enforces .com, we enforce too) ----
+    // REQUIRED customer email (you wanted mandatory)
     const customerEmailRaw = typeof data.email === "string" ? data.email.trim() : "";
     const customerEmail =
       customerEmailRaw.includes("@") && customerEmailRaw.toLowerCase().endsWith(".com")
@@ -53,264 +49,194 @@ export const onRequestPost = async (context: any) => {
       );
     }
 
-    const siteUrl = normalizeSiteUrl(env.SITE_URL);
+    const siteUrl = env.SITE_URL || "https://charbelabdallah.com";
 
-    const items = Array.isArray(data.items) ? data.items : [];
+    const items: AnyRecord[] = Array.isArray(data.items) ? data.items : [];
 
-    // ---- Split items ----
-    const gifts = items.filter((i: AnyObj) => i?.isGift === true);
-    const nonGifts = items.filter((i: AnyObj) => i?.isGift !== true);
-
-    // ---- Group non-gifts into: books (numeric ids) + accessories (non-numeric or kind=accessory) ----
-    type Group = {
-      key: string;
-      kind: "book" | "accessory";
-      baseId: string;
-      title: string;
-      image: string;
-      unitPrice: number;
-      qty: number;
-      gifts: Map<string, { title: string; image: string; qty: number }>;
-    };
-
-    const grouped = new Map<string, Group>();
-
-    for (const i of nonGifts) {
-      const baseId = baseIdOf(i?.id);
-      const kind: "book" | "accessory" =
-        i?.kind === "accessory" || !isNumericId(i?.id) ? "accessory" : "book";
-
-      const unitPrice = Number(i?.price ?? 0);
-      const qty = Number(i?.quantity ?? 0);
-
-      // group key: kind + baseId + title (safe)
-      const key = `${kind}::${baseId}::${String(i?.title ?? "")}`;
-
-      const g =
-        grouped.get(key) ??
-        ({
-          key,
-          kind,
-          baseId,
-          title: String(i?.title ?? ""),
-          image: String(i?.image ?? ""),
-          unitPrice,
-          qty: 0,
-          gifts: new Map(),
-        } as Group);
-
-      g.qty += qty;
-      grouped.set(key, g);
+    // Map for parent title lookup (for gifts)
+    const byId = new Map<string, AnyRecord>();
+    for (const it of items) {
+      if (it?.id != null) byId.set(String(it.id), it);
     }
 
-    // ---- Attach gifts to parent books by parentId base ----
-    for (const gift of gifts) {
-      const parentBase = baseIdOf(gift?.parentId);
-      if (!parentBase) continue;
-
-      // Find matching book groups with same baseId
-      for (const g of grouped.values()) {
-        if (g.kind !== "book") continue;
-        if (g.baseId !== parentBase) continue;
-
-        const title = String(gift?.title ?? "");
-        const k = title; // group gifts by title under the same book
-        const existing = g.gifts.get(k) ?? {
-          title,
-          image: String(gift?.image ?? ""),
-          qty: 0,
-        };
-        existing.qty += Number(gift?.quantity ?? 0);
-        g.gifts.set(k, existing);
-      }
-    }
-
-    // ---- Sort: books first (by numeric baseId), then accessories ----
-    const groups = Array.from(grouped.values()).sort((a, b) => {
-      if (a.kind !== b.kind) return a.kind === "book" ? -1 : 1;
-      const an = parseInt(a.baseId, 10);
-      const bn = parseInt(b.baseId, 10);
-      if (Number.isFinite(an) && Number.isFinite(bn)) return an - bn;
-      return a.title.localeCompare(b.title);
-    });
-
-    // ---- Totals ----
+    // Totals
     const subtotal = Number(data.subtotal ?? 0);
     const deliveryCost = Number(data.deliveryCost ?? 0);
     const total = Number(data.total ?? subtotal + deliveryCost);
 
-    // ---- TEXT fallback (admin + customer) ----
-    const itemsText = groups
-      .map((g) => {
-        const lineTotal = g.unitPrice * g.qty;
-        const main = `• ${g.title} × ${g.qty} = $${money(lineTotal)}`;
-        const giftLines = Array.from(g.gifts.values()).map(
-          (x) => `   - ${x.title} × ${x.qty} = FREE`
-        );
-        return [main, ...giftLines].join("\n");
+    const deliveryMethod = String(data.deliveryMethod || "").toLowerCase(); // "pickup" or "shipping"
+    const isPickup = deliveryMethod === "pickup";
+
+    const deliveryLine = isPickup ? "Pickup (Free)" : "Delivery";
+    const regionLine = isPickup ? "Pickup" : (data.governorate || "-");
+    const cityLine = isPickup ? "-" : (data.city || "-");
+    const addressLine = isPickup ? "-" : (data.address || "-");
+
+    // ---------- TEXT (admin + customer fallback) ----------
+    const itemsText = items
+      .map((i: AnyRecord) => {
+        const qty = Number(i.quantity || 0);
+        const unit = Number(i.price || 0);
+        const lineTotal = i.isGift ? "FREE" : `$${unit * qty}`;
+        const giftTag = i.isGift ? " (FREE GIFT)" : "";
+        const parent =
+          i.isGift && i.parentId ? byId.get(String(i.parentId))?.title : null;
+        const parentTag = parent ? ` for "${parent}"` : "";
+        return `• ${i.title} × ${qty} = ${lineTotal}${giftTag}${parentTag}`;
       })
       .join("\n");
 
     const adminText =
-      `New Order\n\n` +
-      `Name: ${data.firstName ?? ""} ${data.lastName ?? ""}\n` +
-      `Phone: ${data.phone ?? "-"}\n` +
-      `Email: ${customerEmail}\n\n` +
-      `Delivery: ${data.deliveryMethod ?? "-"}\n` +
-      `Region: ${data.governorate || "Pickup"}\n` +
-      `City: ${data.city || "-"}\n` +
-      `Address: ${data.address || "-"}\n\n` +
-      `Order:\n${itemsText}\n\n` +
-      `Subtotal: $${money(subtotal)}\n` +
-      `Delivery: $${money(deliveryCost)}\n` +
-      `Total: $${money(total)}\n`;
+`New Order
+
+Name: ${data.firstName ?? ""} ${data.lastName ?? ""}
+Phone: ${data.phone ?? "-"}
+Email: ${customerEmail ?? "-"}
+
+Delivery: ${deliveryLine}
+Region: ${regionLine}
+City: ${cityLine}
+Address: ${addressLine}
+
+Order:
+${itemsText || "(no items)"}
+
+Subtotal: $${money(subtotal)}
+Delivery: $${money(deliveryCost)}
+Total: $${money(total)}
+`;
 
     const customerText =
-      `Hi ${data.firstName ?? "there"},\n\n` +
-      `Thanks — we received your order ✅\n\n` +
-      `Order:\n${itemsText}\n\n` +
-      `Subtotal: $${money(subtotal)}\n` +
-      `Delivery: $${money(deliveryCost)}\n` +
-      `Total: $${money(total)}\n\n` +
-      `We’ll contact you shortly to confirm delivery details.\n\n` +
-      `— Charbel Abdallah\n`;
+`Hi ${data.firstName ?? "there"},
 
-    // ---- HTML builder for line items with images + freebies ----
-    const itemRowsHtml = groups
-      .map((g) => {
-        const img = absImageUrl(siteUrl, g.image);
-        const lineTotal = g.unitPrice * g.qty;
+Thanks — we received your order ✅
 
-        const mainRow = `
-          <tr>
-            <td style="padding:12px 0;border-bottom:1px solid #eee;vertical-align:top;width:64px;">
+Order:
+${itemsText || "(no items)"}
+
+Subtotal: $${money(subtotal)}
+Delivery: $${money(deliveryCost)}
+Total: $${money(total)}
+
+${isPickup ? "We’ll contact you shortly to confirm pickup details." : "We’ll contact you shortly to confirm delivery details."}
+
+— Charbel Abdallah
+`;
+
+    // ---------- HTML email with images ----------
+    const rowsHtml = items
+      .map((i: AnyRecord) => {
+        const qty = Number(i.quantity || 0);
+        const unit = Number(i.price || 0);
+        const isGift = !!i.isGift;
+        const totalCell = isGift ? "FREE" : `$${unit * qty}`;
+
+        const imgUrl = absoluteImageUrl(siteUrl, i.image);
+        const title = String(i.title || "");
+        const parent =
+          isGift && i.parentId ? byId.get(String(i.parentId))?.title : null;
+
+        const giftBadge = isGift
+          ? `<span style="display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#f6f1d4;color:#8a6d1f;font-size:12px;font-weight:700;vertical-align:middle;">FREE GIFT</span>`
+          : "";
+
+        const parentLine = parent
+          ? `<div style="margin-top:4px;color:#666;font-size:12px;">Gift for: <strong>${String(parent)}</strong></div>`
+          : "";
+
+        return `
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:12px 0;width:64px;vertical-align:top;">
               ${
-                img
-                  ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(
-                      g.title
-                    )}" width="52" height="52" style="display:block;border:1px solid #eee;border-radius:10px;object-fit:contain;background:#fff;" />`
-                  : ``
+                imgUrl
+                  ? `<img src="${imgUrl}" alt="${title}" width="56" height="56" style="display:block;object-fit:contain;border:1px solid #eee;border-radius:8px;background:#fff;" />`
+                  : `<div style="width:56px;height:56px;border:1px solid #eee;border-radius:8px;background:#fafafa;"></div>`
               }
             </td>
-            <td style="padding:12px 0;border-bottom:1px solid #eee;vertical-align:top;">
-              <div style="font-size:14px;font-weight:600;color:#111;">${escapeHtml(g.title)}</div>
-              <div style="font-size:12px;color:#666;margin-top:4px;">Qty: ${escapeHtml(
-                g.qty
-              )}</div>
+            <td style="padding:12px 12px 12px 0;vertical-align:top;">
+              <div style="font-weight:700;color:#111;font-size:14px;line-height:1.2;">
+                ${title}
+                ${giftBadge}
+              </div>
+              <div style="margin-top:6px;color:#444;font-size:13px;">Qty: ${qty}</div>
+              ${parentLine}
             </td>
-            <td style="padding:12px 0;border-bottom:1px solid #eee;vertical-align:top;text-align:right;white-space:nowrap;font-size:14px;font-weight:600;color:#111;">
-              $${escapeHtml(money(lineTotal))}
+            <td style="padding:12px 0;vertical-align:top;text-align:right;font-weight:700;color:#111;font-size:14px;">
+              ${totalCell}
             </td>
           </tr>
-        `.trim();
-
-        const giftRows = Array.from(g.gifts.values())
-          .map((x) => {
-            const gimg = absImageUrl(siteUrl, x.image);
-            return `
-              <tr>
-                <td style="padding:10px 0 10px 16px;border-bottom:1px solid #f2f2f2;vertical-align:top;width:64px;">
-                  ${
-                    gimg
-                      ? `<img src="${escapeHtml(gimg)}" alt="${escapeHtml(
-                          x.title
-                        )}" width="44" height="44" style="display:block;border:1px solid #f0f0f0;border-radius:10px;object-fit:contain;background:#fff;opacity:0.95;" />`
-                      : ``
-                  }
-                </td>
-                <td style="padding:10px 0;border-bottom:1px solid #f2f2f2;vertical-align:top;">
-                  <div style="font-size:13px;font-weight:600;color:#111;">
-                    ${escapeHtml(x.title)}
-                    <span style="margin-left:8px;font-size:11px;font-weight:700;color:#b68b00;letter-spacing:.3px;">FREE GIFT</span>
-                  </div>
-                  <div style="font-size:12px;color:#666;margin-top:4px;">Qty: ${escapeHtml(
-                    x.qty
-                  )}</div>
-                </td>
-                <td style="padding:10px 0;border-bottom:1px solid #f2f2f2;vertical-align:top;text-align:right;white-space:nowrap;font-size:13px;font-weight:700;color:#111;">
-                  FREE
-                </td>
-              </tr>
-            `.trim();
-          })
-          .join("");
-
-        return mainRow + giftRows;
+        `;
       })
       .join("");
 
-    const totalsHtml = `
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:14px;border-top:1px solid #eee;padding-top:12px;">
-        <tr>
-          <td style="font-size:13px;color:#444;padding:6px 0;">Subtotal</td>
-          <td style="font-size:13px;color:#111;padding:6px 0;text-align:right;white-space:nowrap;">$${escapeHtml(
-            money(subtotal)
-          )}</td>
-        </tr>
-        <tr>
-          <td style="font-size:13px;color:#444;padding:6px 0;">Delivery</td>
-          <td style="font-size:13px;color:#111;padding:6px 0;text-align:right;white-space:nowrap;">$${escapeHtml(
-            money(deliveryCost)
-          )}</td>
-        </tr>
-        <tr>
-          <td style="font-size:14px;color:#111;padding:10px 0;font-weight:800;border-top:1px solid #eee;">Total</td>
-          <td style="font-size:14px;color:#111;padding:10px 0;text-align:right;white-space:nowrap;font-weight:800;border-top:1px solid #eee;">$${escapeHtml(
-            money(total)
-          )}</td>
-        </tr>
-      </table>
-    `.trim();
-
-    const customerHtml = `
-      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#ffffff;color:#111;padding:24px;">
-        <div style="max-width:620px;margin:0 auto;border:1px solid #eee;border-radius:14px;padding:18px 18px 10px;">
-          <div style="font-size:18px;font-weight:800;margin-bottom:6px;">Order received ✅</div>
-          <div style="font-size:13px;color:#555;margin-bottom:14px;">
-            Hi ${escapeHtml(data.firstName ?? "there")}, thanks — we received your order. Below is your summary.
+    const commonHtml = (heading: string, introLine: string) => `
+      <div style="font-family:Arial,Helvetica,sans-serif;background:#f7f7f7;padding:24px;">
+        <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #eee;border-radius:14px;overflow:hidden;">
+          <div style="padding:18px 20px;background:#111;color:#fff;">
+            <div style="font-size:16px;font-weight:800;letter-spacing:.2px;">${heading}</div>
+            <div style="margin-top:4px;font-size:12px;opacity:.9;">charbelabdallah.com</div>
           </div>
 
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-            ${itemRowsHtml}
-          </table>
+          <div style="padding:20px;">
+            <div style="font-size:14px;color:#111;margin-bottom:10px;">${introLine}</div>
 
-          ${totalsHtml}
+            <div style="border:1px solid #eee;border-radius:12px;padding:16px;">
+              <div style="font-weight:800;margin-bottom:10px;color:#111;">Order summary</div>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                ${rowsHtml || `<tr><td style="padding:12px 0;color:#666;">(no items)</td></tr>`}
+              </table>
 
-          <div style="margin-top:14px;font-size:13px;color:#555;">
-            We’ll contact you shortly to confirm delivery details.
-          </div>
-          <div style="margin-top:10px;font-size:13px;color:#111;font-weight:700;">— Charbel Abdallah</div>
+              <div style="margin-top:14px;border-top:1px solid #eee;padding-top:12px;">
+                <div style="display:flex;justify-content:space-between;font-size:13px;color:#333;margin:6px 0;">
+                  <span>Subtotal</span><span>$${money(subtotal)}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;color:#333;margin:6px 0;">
+                  <span>Delivery</span><span>$${money(deliveryCost)}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:15px;color:#111;font-weight:900;margin-top:10px;">
+                  <span>Total</span><span>$${money(total)}</span>
+                </div>
+              </div>
+            </div>
 
-          <div style="margin-top:14px;font-size:11px;color:#777;">
-            If you don’t see images, your email app may be blocking them — tap “Display images”.
+            <div style="margin-top:16px;border:1px solid #eee;border-radius:12px;padding:16px;">
+              <div style="font-weight:800;margin-bottom:10px;color:#111;">Customer details</div>
+              <div style="font-size:13px;color:#333;line-height:1.6;">
+                <div><strong>Name:</strong> ${data.firstName ?? ""} ${data.lastName ?? ""}</div>
+                <div><strong>Phone:</strong> ${data.phone ?? "-"}</div>
+                <div><strong>Email:</strong> ${customerEmail}</div>
+                <div style="margin-top:10px;"><strong>Delivery:</strong> ${deliveryLine}</div>
+                <div><strong>Region:</strong> ${regionLine}</div>
+                <div><strong>City:</strong> ${cityLine}</div>
+                <div><strong>Address:</strong> ${addressLine}</div>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;color:#444;font-size:13px;line-height:1.6;">
+              ${
+                isPickup
+                  ? `We’ll contact you shortly to confirm <strong>pickup</strong> details.`
+                  : `We’ll contact you shortly to confirm <strong>delivery</strong> details.`
+              }
+            </div>
+
+            <div style="margin-top:22px;color:#999;font-size:12px;">
+              If images don’t load, it’s usually because the email client is blocking remote images — you can allow images for this sender.
+            </div>
           </div>
         </div>
       </div>
-    `.trim();
+    `;
 
-    const adminHtml = `
-      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#ffffff;color:#111;padding:24px;">
-        <div style="max-width:720px;margin:0 auto;border:1px solid #eee;border-radius:14px;padding:18px;">
-          <div style="font-size:18px;font-weight:800;margin-bottom:8px;">New Order</div>
+    const adminHtml = commonHtml(
+      "New order received ✅",
+      `A new order was placed on your website.`
+    );
 
-          <div style="font-size:13px;color:#333;line-height:1.5;margin-bottom:12px;">
-            <div><b>Name:</b> ${escapeHtml(data.firstName ?? "")} ${escapeHtml(data.lastName ?? "")}</div>
-            <div><b>Phone:</b> ${escapeHtml(data.phone ?? "-")}</div>
-            <div><b>Email:</b> ${escapeHtml(customerEmail)}</div>
-            <div style="margin-top:8px;"><b>Delivery:</b> ${escapeHtml(data.deliveryMethod ?? "-")}</div>
-            <div><b>Region:</b> ${escapeHtml(data.governorate || "Pickup")}</div>
-            <div><b>City:</b> ${escapeHtml(data.city || "-")}</div>
-            <div><b>Address:</b> ${escapeHtml(data.address || "-")}</div>
-          </div>
-
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-            ${itemRowsHtml}
-          </table>
-
-          ${totalsHtml}
-        </div>
-      </div>
-    `.trim();
+    const customerHtml = commonHtml(
+      "Order received ✅",
+      `Hi ${data.firstName ?? "there"}, thanks — we received your order.`
+    );
 
     // 1) Admin email
     const adminSend = await resend.emails.send({
@@ -330,7 +256,7 @@ export const onRequestPost = async (context: any) => {
       });
     }
 
-    // 2) Customer email
+    // 2) Customer email (mandatory now)
     const customerSend = await resend.emails.send({
       from: "Charbel Abdallah <orders@charbelabdallah.com>",
       to: [customerEmail],
@@ -354,11 +280,17 @@ export const onRequestPost = async (context: any) => {
         customerId: (customerSend as any)?.data?.id ?? null,
         customerEmailSentTo: customerEmail,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   } catch (err: any) {
     return new Response(
-      JSON.stringify({ success: false, error: err?.message ?? "Failed to send order" }),
+      JSON.stringify({
+        success: false,
+        error: err?.message ?? "Failed to send order",
+      }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
