@@ -220,9 +220,7 @@ ${isPickup ? "We’ll contact you shortly to confirm pickup details." : "We’ll
               }
             </div>
 
-            <div style="margin-top:22px;color:#999;font-size:12px;">
-              If images don’t load, it’s usually because the email client is blocking remote images — you can allow images for this sender.
-            </div>
+           
           </div>
         </div>
       </div>
@@ -234,8 +232,8 @@ ${isPickup ? "We’ll contact you shortly to confirm pickup details." : "We’ll
     );
 
     const customerHtml = commonHtml(
-      "Order received ✅",
-      `Hi ${data.firstName ?? "there"}, thanks — we received your order.`
+      "Order received",
+      `Hi ${data.firstName ?? "there"}, thanks, we received your order.`
     );
 
     // 1) Admin email
