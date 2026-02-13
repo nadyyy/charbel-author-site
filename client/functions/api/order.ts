@@ -316,16 +316,22 @@ ${isPickup ? "We’ll contact you shortly to confirm pickup details." : "We’ll
               </table>
 
               <div style="margin-top:14px;border-top:1px solid #eee;padding-top:12px;">
-                <div style="display:flex;justify-content:space-between;font-size:13px;color:#333;margin:6px 0;">
-                  <span>Subtotal</span><span>$${money(subtotal)}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:13px;color:#333;margin:6px 0;">
-                  <span>Delivery</span><span>$${money(deliveryCost)}</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:15px;color:#111;font-weight:900;margin-top:10px;">
-                  <span>Total</span><span>$${money(total)}</span>
-                </div>
-              </div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+    <tr>
+      <td style="font-size:13px;color:#333;padding:6px 0;">Subtotal:</td>
+      <td align="right" style="font-size:13px;color:#333;padding:6px 0;">$${money(subtotal)}</td>
+    </tr>
+    <tr>
+      <td style="font-size:13px;color:#333;padding:6px 0;">Delivery:</td>
+      <td align="right" style="font-size:13px;color:#333;padding:6px 0;">$${money(deliveryCost)}</td>
+    </tr>
+    <tr>
+      <td style="font-size:15px;color:#111;font-weight:900;padding:10px 0 0;">Total:</td>
+      <td align="right" style="font-size:15px;color:#111;font-weight:900;padding:10px 0 0;">$${money(total)}</td>
+    </tr>
+  </table>
+</div>
+
             </div>
 
             <div style="margin-top:16px;border:1px solid #eee;border-radius:12px;padding:16px;">
@@ -364,7 +370,8 @@ ${isPickup ? "We’ll contact you shortly to confirm pickup details." : "We’ll
 
     const customerHtml = buildHtml({
       heading: "Order received",
-      intro: "Hi there, thanks, we received your order.",
+      intro: `Hi ${data.firstName ?? "there"},<br><br>Thanks, we received your order.`,
+
       includeContactLine: true, // ✅ customer keeps it
     });
 
