@@ -126,17 +126,29 @@ export default function Cart() {
   const [email, setEmail] = useState("");
   const [emailOptIn, setEmailOptIn] = useState(false);
 
+
+
+  const isValidEmail =
+  email.trim().includes("@") && email.trim().toLowerCase().endsWith(".com");
+
   // ✅ VALIDATION
-  const isValid =
-    firstName.trim() &&
-    lastName.trim() &&
-    phone.trim() &&
-    (state.deliveryMethod === "pickup" ||
-      (state.governorate && city.trim() && address.trim()));
+ const isValid =
+  firstName.trim() &&
+  lastName.trim() &&
+  phone.trim() &&
+  isValidEmail &&
+  (state.deliveryMethod === "pickup" ||
+    (state.governorate && city.trim() && address.trim()));
+
 
   // ✅ WHATSAPP
   const handlePlaceOrder = async () => {
   if (!isValid) return;
+  if (!isValidEmail) {
+  alert("Please enter a valid .com email address.");
+  return;
+}
+
 
   const confirm = window.confirm(
     "Are you sure you want to place this order?"
@@ -320,12 +332,20 @@ export default function Cart() {
                 className="border border-gray-300 px-4 py-3 md:col-span-2"
               />
               <input
-                type="email"
-                placeholder="Email (optional)"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="border border-gray-300 px-4 py-3 md:col-span-2"
-              />
+  type="email"
+  required
+  placeholder="Email"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  className="border border-gray-300 px-4 py-3 md:col-span-2"
+/>
+
+{email.trim().length > 0 && !isValidEmail && (
+  <p className="text-xs text-red-600 md:col-span-2">
+    Email must include @ and end with .com
+  </p>
+)}
+
             </div>
 
             <label className="flex items-center gap-2 text-sm text-gray-600">
