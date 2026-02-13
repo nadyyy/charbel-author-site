@@ -189,8 +189,8 @@ Total: $${money(total)}
 `;
 
     // CUSTOMER text (Hi there, no emoji)
-    const customerText =
-`Hi there,
+   const customerText =
+`Hi ${data.firstName ?? "there"},
 
 Thanks, we received your order.
 
@@ -205,6 +205,7 @@ ${isPickup ? "We’ll contact you shortly to confirm pickup details." : "We’ll
 
 — Charbel Abdallah
 `;
+
 
     // ---------- HTML rows ----------
     const rowsHtmlParts: string[] = [];
