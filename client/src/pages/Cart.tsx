@@ -28,39 +28,18 @@ export default function Cart() {
     clearCart,
   } = useCart();
 
-  const isGift = (item: any) => item?.isGift === true;
-
-  const giftFor = (item: any) => {
-    const parentId = item?.parentId;
-    if (!parentId) return "";
-    const parent = state.items.find((x: any) => x.id === parentId);
-    return parent?.title ?? "";
-  };
-
   // ✅ Same freebie catalog as Books (images are in /accessories/*.jpeg)
   const FREEBIES: Record<number, { id: string; title: string; image: string }[]> = {
     1: [
-      {
-        id: "armageddon-insert",
-        title: "Armageddon Insert",
-        image: "/accessories/armageddon-insert.jpeg",
-      },
+      { id: "armageddon-insert", title: "Armageddon Insert", image: "/accessories/armageddon-insert.jpeg" },
       { id: "judas-insert", title: "Judas Insert", image: "/accessories/judas-insert.jpeg" },
-      {
-        id: "oblivion-insert",
-        title: "Oblivion Insert",
-        image: "/accessories/oblivion-insert.jpeg",
-      },
+      { id: "oblivion-insert", title: "Oblivion Insert", image: "/accessories/oblivion-insert.jpeg" },
     ],
     2: [
       { id: "king-bookmark", title: "King Bookmark", image: "/accessories/king-bookmark.jpeg" },
       { id: "lord-bookmark", title: "Lord Bookmark", image: "/accessories/lord-bookmark.jpeg" },
       { id: "poet-bookmark", title: "Poet Bookmark", image: "/accessories/poet-bookmark.jpeg" },
-      {
-        id: "soldier-bookmark",
-        title: "Soldier Bookmark",
-        image: "/accessories/soldier-bookmark.jpeg",
-      },
+      { id: "soldier-bookmark", title: "Soldier Bookmark", image: "/accessories/soldier-bookmark.jpeg" },
     ],
   };
 
@@ -68,11 +47,13 @@ export default function Cart() {
   const [pendingBookItem, setPendingBookItem] = useState<any>(null);
   const [selectedFreebieId, setSelectedFreebieId] = useState("");
   const [clearOpen, setClearOpen] = useState(false);
-  const [placeOrderOpen, setPlaceOrderOpen] = useState(false);
-const [placingOrder, setPlacingOrder] = useState(false);
-const [placeOrderError, setPlaceOrderError] = useState<string | null>(null);
-const [placeOrderSuccess, setPlaceOrderSuccess] = useState(false);
 
+  // ✅ Place-order modal state
+  const [placeOrderOpen, setPlaceOrderOpen] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
+  const [placeOrderError, setPlaceOrderError] = useState<string | null>(null);
+  const [placeOrderSuccess, setPlaceOrderSuccess] = useState(false);
+  const [placedDeliveryMethod, setPlacedDeliveryMethod] = useState<"pickup" | "shipping">("pickup");
 
   const confirmClearCart = () => {
     clearCart();
@@ -96,11 +77,6 @@ const [placeOrderSuccess, setPlaceOrderSuccess] = useState(false);
     setFreebieOpen(true);
   };
 
-  const selectedGift =
-    pendingBookItem
-      ? FREEBIES[baseBookIdOf(pendingBookItem)]?.find((g) => g.id === selectedFreebieId) ?? null
-      : null;
-
   const confirmFreebieFromCart = () => {
     if (!pendingBookItem) return;
     const baseId = baseBookIdOf(pendingBookItem);
@@ -108,13 +84,7 @@ const [placeOrderSuccess, setPlaceOrderSuccess] = useState(false);
     if (!gift) return;
 
     addBookWithGift(
-      {
-        id: String(baseId),
-        title: pendingBookItem.title,
-        price: pendingBookItem.price,
-        image: pendingBookItem.image,
-        kind: "book",
-      },
+      { id: String(baseId), title: pendingBookItem.title, price: pendingBookItem.price, image: pendingBookItem.image, kind: "book" },
       { id: gift.id, title: gift.title, image: gift.image }
     );
 
@@ -131,92 +101,28 @@ const [placeOrderSuccess, setPlaceOrderSuccess] = useState(false);
   const [email, setEmail] = useState("");
   const [emailOptIn, setEmailOptIn] = useState(false);
 
-
-
   const isValidEmail =
-  email.trim().includes("@") && email.trim().toLowerCase().endsWith(".com");
+    email.trim().includes("@") && email.trim().toLowerCase().endsWith(".com");
 
-  // ✅ VALIDATION
- const isValid =
-  firstName.trim() &&
-  lastName.trim() &&
-  phone.trim() &&
-  isValidEmail &&
-  (state.deliveryMethod === "pickup" ||
-    (state.governorate && city.trim() && address.trim()));
-
-
-const submitOrder = async () => {
-  setPlacingOrder(true);
-  setPlaceOrderError(null);
-
-  try {
-    const res = await fetch("/api/order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        firstName,
-        lastName,
-        phone,
-        email,
-        deliveryMethod: state.deliveryMethod,
-        governorate: state.governorate,
-        city,
-        address,
-        items: state.items,
-        subtotal,
-        deliveryCost,
-        total,
-      }),
-    });
-
-    const json = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      setPlaceOrderError(json?.error || "Something went wrong. Please try again.");
-      return;
-    }
-
-    setPlaceOrderSuccess(true);
-    clearCart();
-  } catch (e: any) {
-    setPlaceOrderError(e?.message || "Something went wrong. Please try again.");
-  } finally {
-    setPlacingOrder(false);
-  }
-};
-
-const handlePlaceOrder = () => {
-  if (!isValid) return;
-
-  if (!isValidEmail) {
-    setPlaceOrderError("Please enter a valid .com email address.");
-    setPlaceOrderSuccess(false);
-    setPlaceOrderOpen(true);
-    return;
-  }
-
-  setPlaceOrderError(null);
-  setPlaceOrderSuccess(false);
-  setPlaceOrderOpen(true);
-};
-
-
-
-  
-
+  const isValid =
+    firstName.trim() &&
+    lastName.trim() &&
+    phone.trim() &&
+    isValidEmail &&
+    (state.deliveryMethod === "pickup" ||
+      (state.governorate && city.trim() && address.trim()));
 
   const [, setLocation] = useLocation();
 
   // ✅ GROUPING (book base id -> aggregate qty + gifts)
   const baseIdOf = (rawId: any) => String(rawId ?? "").split("::")[0];
-  const isBookLine = (i: any) => {
-  if (i?.isGift) return false;
-  if ((i?.kind ?? "book") !== "book") return false;
 
-  const base = baseIdOf(i.id);
-  return /^\d+$/.test(base); // ✅ only numeric ids are real books
-};
+  const isBookLine = (i: any) => {
+    if (i?.isGift) return false;
+    if ((i?.kind ?? "book") !== "book") return false;
+    const base = baseIdOf(i.id);
+    return /^\d+$/.test(base);
+  };
 
   const isGiftLine = (i: any) => i?.isGift === true;
 
@@ -274,15 +180,12 @@ const handlePlaceOrder = () => {
       return a.baseId.localeCompare(b.baseId);
     });
   })();
+
   const accessoryLines = state.items.filter((i: any) => {
-  if (i?.isGift) return false;
-
-  const base = baseIdOf(i.id);
-
-  // ✅ if kind is accessory OR id is non-numeric -> treat as accessory
-  return (i?.kind === "accessory") || !/^\d+$/.test(base);
-});
-
+    if (i?.isGift) return false;
+    const base = baseIdOf(i.id);
+    return (i?.kind === "accessory") || !/^\d+$/.test(base);
+  });
 
   const removeOneFromGroup = (baseId: string) => {
     const candidate = [...state.items]
@@ -291,14 +194,72 @@ const handlePlaceOrder = () => {
 
     if (!candidate) return;
 
-    // bundled book lines are qty=1 -> remove bundle
     if (String(candidate.id).includes("::book::")) {
       updateQuantity(candidate.id, 0);
       return;
     }
 
-    // non-bundled: decrement or remove
     updateQuantity(candidate.id, candidate.quantity - 1);
+  };
+
+  // ✅ Place order flow
+  const handlePlaceOrder = () => {
+    if (!isValid) return;
+
+    if (!isValidEmail) {
+      setPlaceOrderError("Please enter a valid .com email address.");
+      setPlaceOrderSuccess(false);
+      setPlaceOrderOpen(true);
+      return;
+    }
+
+    setPlaceOrderError(null);
+    setPlaceOrderSuccess(false);
+    setPlaceOrderOpen(true);
+  };
+
+  const submitOrder = async () => {
+    setPlacingOrder(true);
+    setPlaceOrderError(null);
+
+    // snapshot (because clearCart may reset state.deliveryMethod)
+    setPlacedDeliveryMethod(state.deliveryMethod);
+
+    try {
+      const res = await fetch("/api/order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          phone,
+          email,
+          deliveryMethod: state.deliveryMethod,
+          governorate: state.governorate,
+          city,
+          address,
+          items: state.items,
+          subtotal,
+          deliveryCost,
+          total,
+        }),
+      });
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setPlaceOrderError(json?.error || "Something went wrong. Please try again.");
+        setPlacingOrder(false);
+        return;
+      }
+
+      setPlaceOrderSuccess(true);
+      clearCart();
+    } catch (e: any) {
+      setPlaceOrderError(e?.message || "Something went wrong. Please try again.");
+    } finally {
+      setPlacingOrder(false);
+    }
   };
 
   /* EMPTY CART */
@@ -354,21 +315,21 @@ const handlePlaceOrder = () => {
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
                 className="border border-gray-300 px-4 py-3 md:col-span-2"
               />
+
               <input
-  type="email"
-  required
-  placeholder="Email"
-  value={email}
-  onChange={(e) => setEmail(e.target.value)}
-  className="border border-gray-300 px-4 py-3 md:col-span-2"
-/>
+                type="email"
+                required
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border border-gray-300 px-4 py-3 md:col-span-2"
+              />
 
-{email.trim().length > 0 && !isValidEmail && (
-  <p className="text-xs text-red-600 md:col-span-2">
-    Email must include @ and end with .com
-  </p>
-)}
-
+              {email.trim().length > 0 && !isValidEmail && (
+                <p className="text-xs text-red-600 md:col-span-2">
+                  Email must include @ and end with .com
+                </p>
+              )}
             </div>
 
             <label className="flex items-center gap-2 text-sm text-gray-600">
@@ -499,19 +460,13 @@ const handlePlaceOrder = () => {
               {Array.from(g.gifts.values()).map((gift) => (
                 <div key={gift.title} className="flex gap-4 items-center pl-2">
                   <div className="w-20 h-20 flex items-center justify-center overflow-hidden">
-                    <img
-                      src={gift.image}
-                      alt={gift.title}
-                      className="w-full h-full object-contain"
-                    />
+                    <img src={gift.image} alt={gift.title} className="w-full h-full object-contain" />
                   </div>
 
                   <div className="flex-1 space-y-1 text-sm">
                     <p className="font-medium">
                       {gift.title}
-                      <span className="ml-2 text-xs font-semibold text-[#d4af37]">
-                        FREE GIFT
-                      </span>
+                      <span className="ml-2 text-xs font-semibold text-[#d4af37]">FREE GIFT</span>
                     </p>
                     <div className="text-xs text-gray-500">Qty: {gift.qty}</div>
                   </div>
@@ -525,37 +480,36 @@ const handlePlaceOrder = () => {
           ))}
 
           {accessoryLines.map((item: any) => (
-  <div key={item.id} className="flex gap-4 items-center">
-    <div className="w-20 h-20 flex items-center justify-center overflow-hidden">
-      <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
-    </div>
+            <div key={item.id} className="flex gap-4 items-center">
+              <div className="w-20 h-20 flex items-center justify-center overflow-hidden">
+                <img src={item.image} alt={item.title} className="w-full h-full object-contain" />
+              </div>
 
-    <div className="flex-1 space-y-2 text-sm">
-      <p className="font-medium">{item.title}</p>
+              <div className="flex-1 space-y-2 text-sm">
+                <p className="font-medium">{item.title}</p>
 
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-          className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-black hover:text-white"
-        >
-          <Minus size={14} />
-        </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-black hover:text-white"
+                  >
+                    <Minus size={14} />
+                  </button>
 
-        <span className="w-6 text-center">{item.quantity}</span>
+                  <span className="w-6 text-center">{item.quantity}</span>
 
-        <button
-          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-          className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-black hover:text-white"
-        >
-          <Plus size={14} />
-        </button>
-      </div>
-    </div>
+                  <button
+                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-black hover:text-white"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+              </div>
 
-    <span className="text-sm font-medium">${item.price * item.quantity}</span>
-  </div>
-))}
-
+              <span className="text-sm font-medium">${item.price * item.quantity}</span>
+            </div>
+          ))}
 
           <div className="border-t pt-4 text-sm space-y-2">
             <div className="flex justify-between">
@@ -596,8 +550,7 @@ const handlePlaceOrder = () => {
             <h3 className="serif-title text-2xl text-black mb-2">Choose your free gift</h3>
 
             <p className="sans-body text-gray-600 text-sm mb-6">
-              Included with{" "}
-              <span className="font-medium text-black">{pendingBookItem.title}</span>.
+              Included with <span className="font-medium text-black">{pendingBookItem.title}</span>.
             </p>
 
             <div className="space-y-3">
@@ -646,89 +599,81 @@ const handlePlaceOrder = () => {
           </div>
         </div>
       )}
-{/* PLACE ORDER MODAL */}
-{placeOrderOpen && (
-  <div className="fixed inset-0 z-[999] flex items-center justify-center px-4">
-    <button
-      className="absolute inset-0 bg-black/50"
-      onClick={() => {
-        if (!placingOrder) setPlaceOrderOpen(false);
-      }}
-      aria-label="Close"
-    />
 
-    <div className="relative w-full max-w-md bg-white border border-gray-100 shadow-xl p-6">
-      <h3 className="serif-title text-xl text-black mb-2">
-        {placeOrderSuccess ? "Order received ✅" : "Place this order?"}
-      </h3>
+      {/* PLACE ORDER MODAL (same design style as Clear cart) */}
+      {placeOrderOpen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center px-4">
+          <button
+            className="absolute inset-0 bg-black/50"
+            onClick={() => {
+              if (!placingOrder) setPlaceOrderOpen(false);
+            }}
+            aria-label="Close"
+          />
 
-      {!placeOrderSuccess ? (
-        <>
-          <p className="sans-body text-sm text-gray-600">
-            We’ll email you a confirmation. Please confirm you want to place this order.
-          </p>
+          <div className="relative w-full max-w-md bg-white border border-gray-100 shadow-xl p-6">
+            <h3 className="serif-title text-xl text-black mb-2">
+              {placeOrderSuccess ? "Order received" : "Place this order?"}
+            </h3>
 
-          {placeOrderError && (
-            <p className="mt-3 text-sm text-red-600">{placeOrderError}</p>
-          )}
+            {!placeOrderSuccess ? (
+              <>
+                <p className="sans-body text-sm text-gray-600">
+                  We’ll email you a confirmation. Please confirm you want to place this order.
+                </p>
 
-          <div className="mt-6 flex gap-3 justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setPlaceOrderOpen(false)}
-              disabled={placingOrder}
-              className="border-black text-black hover:bg-black hover:text-white"
-            >
-              Cancel
-            </Button>
+                {placeOrderError && (
+                  <p className="mt-3 text-sm text-red-600">{placeOrderError}</p>
+                )}
 
-            <Button
-              type="button"
-              onClick={submitOrder}
-              disabled={placingOrder}
-              className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
-            >
-              {placingOrder ? "Placing..." : "Yes, place order"}
-            </Button>
+                <div className="mt-6 flex gap-3 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setPlaceOrderOpen(false)}
+                    disabled={placingOrder}
+                    className="border-black text-black hover:bg-black hover:text-white"
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={submitOrder}
+                    disabled={placingOrder}
+                    className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
+                  >
+                    {placingOrder ? "Placing..." : "Yes, place order"}
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="sans-body text-sm text-gray-600">
+                  {placedDeliveryMethod === "pickup"
+                    ? "We’ll contact you shortly to confirm pickup details."
+                    : "We’ll contact you shortly to confirm delivery details."}
+                </p>
+
+                <div className="mt-6 flex justify-end">
+                  <Button
+                    type="button"
+                    onClick={() => setPlaceOrderOpen(false)}
+                    className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
-        </>
-      ) : (
-        <>
-          <p className="sans-body text-sm text-gray-600">
-            {state.deliveryMethod === "pickup"
-              ? "We’ll contact you shortly to confirm pickup details."
-              : "We’ll contact you shortly to confirm delivery details."}
-          </p>
-
-          <div className="mt-6 flex justify-end">
-            <Button
-              type="button"
-              onClick={() => setPlaceOrderOpen(false)}
-              className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
-            >
-              Close
-            </Button>
-          </div>
-        </>
+        </div>
       )}
-    </div>
-  </div>
-)}
-
-
-
-
-
 
       {/* CLEAR CART MODAL */}
       {clearOpen && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center px-4">
-          <button
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setClearOpen(false)}
-            aria-label="Close"
-          />
+          <button className="absolute inset-0 bg-black/50" onClick={() => setClearOpen(false)} aria-label="Close" />
 
           <div className="relative w-full max-w-md bg-white border border-gray-100 shadow-xl p-6">
             <h3 className="serif-title text-xl text-black mb-2">Clear your cart?</h3>
