@@ -233,7 +233,8 @@ ${isPickup ? "We’ll contact you shortly to confirm pickup details." : "We’ll
 
     const customerHtml = commonHtml(
       "Order received",
-      `Hi ${data.firstName ?? "there"}, thanks, we received your order.`
+      `Hi ${data.firstName ?? "there"}, 
+      thanks, we received your order.`
     );
 
     // 1) Admin email
