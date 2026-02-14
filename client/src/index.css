@@ -44,9 +44,9 @@
 
 :root {
   /* Minimalist Luxury Color Scheme */
-  --primary: #000000; /* Black - primary text and elements */
+  --primary: #000000;          /* Black - primary text and elements */
   --primary-foreground: #ffffff; /* White - contrast */
-  --accent: #d4af37; /* Gold - highlights and accents */
+  --accent: #d4af37;           /* Gold - highlights and accents */
   --accent-foreground: #000000; /* Black text on gold */
   --sidebar-primary: #000000;
   --sidebar-primary-foreground: #ffffff;
@@ -56,8 +56,8 @@
   --chart-4: #daa520;
   --chart-5: #bdb76b;
   --radius: 0.5rem;
-  --background: oklch(1 0 0); /* White background */
-  --foreground: oklch(0 0 0); /* Black text */
+  --background: oklch(1 0 0);      /* White background */
+  --foreground: oklch(0 0 0);       /* Black text */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0 0 0);
   --popover: oklch(1 0 0);
@@ -68,9 +68,9 @@
   --muted-foreground: oklch(0.4 0.001 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9 0.001 0); /* Light gray border */
+  --border: oklch(0.9 0.001 0);    /* Light gray border */
   --input: oklch(0.95 0.001 0);
-  --ring: #d4af37; /* Gold ring */
+  --ring: #d4af37;                 /* Gold ring */
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0 0 0);
   --sidebar-accent: #d4af37;
@@ -95,7 +95,7 @@
   --muted: oklch(0.274 0.006 286.033);
   --muted-foreground: oklch(0.705 0.015 286.067);
   --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.92 0.005 65);
+  --accent-foreground:  oklch(0.92 0.005 65);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(1 0 0 / 10%);
@@ -109,14 +109,14 @@
   --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.85 0.005 65);
   --sidebar-accent: oklch(0.274 0.006 286.033);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-accent-foreground:  oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.488 0.243 264.376);
 }
 
 @layer base {
   html {
-    font-size: 18px; /* increased to reduce "zoomed out" feel on Mac */
+    font-size: 16px;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -125,21 +125,16 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: "Lato", sans-serif;
-    letter-spacing: 0.3px;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: geometricPrecision;
-  }
+  @apply bg-background text-foreground;
+  font-family: 'Lato', sans-serif;
+  letter-spacing: 0.3px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: "Playfair Display", serif;
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
     font-weight: 600;
     letter-spacing: 0.5px;
   }
@@ -168,6 +163,7 @@
     @apply cursor-pointer;
   }
 }
+
 
 @layer components {
   /**
@@ -214,13 +210,13 @@
   }
 
   .serif-title {
-    font-family: "Playfair Display", serif;
+    font-family: 'Playfair Display', serif;
     font-weight: 600;
     letter-spacing: 0.5px;
   }
 
   .sans-body {
-    font-family: "Lato", sans-serif;
+    font-family: 'Lato', sans-serif;
     font-weight: 400;
     letter-spacing: 0.3px;
   }
@@ -236,13 +232,7 @@
     .container {
       padding-left: 2rem; /* 32px - desktop padding */
       padding-right: 2rem;
-      max-width: 1120px; /* was 1280 */
-    }
-  }
-
-  @media (min-width: 1440px) {
-    .container {
-      max-width: 1100px;
+      max-width: 1280px; /* Standard content width */
     }
   }
 }
