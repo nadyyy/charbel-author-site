@@ -401,6 +401,8 @@ const handlePlaceOrder = () => {
 
             {state.deliveryMethod === "shipping" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                
                 <select
                   required
                   value={state.governorate}
@@ -430,7 +432,14 @@ const handlePlaceOrder = () => {
                   className="border border-gray-300 px-4 py-3 md:col-span-2"
                 />
               </div>
+              
             )}
+            {state.deliveryMethod === "shipping" && (
+  <p className="text-xs text-gray-500 mt-2">
+    Delivery typically takes 3–5 business days.
+  </p>
+)}
+
           </section>
         </div>
 
