@@ -115,42 +115,28 @@
 }
 
 @layer base {
-  html {
-    font-size: 16px;
-    -webkit-text-size-adjust: 100%;
-  }
-
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
-  @apply bg-background text-foreground;
-  font-family: 'Lato', sans-serif;
-  letter-spacing: 0.3px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
-}
-
+    @apply bg-background text-foreground;
+    font-family: 'Lato', sans-serif;
+    letter-spacing: 0.3px;
+  }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
     font-weight: 600;
     letter-spacing: 0.5px;
   }
-
   h1 {
     @apply text-5xl md:text-6xl;
   }
-
   h2 {
     @apply text-4xl md:text-5xl;
   }
-
   h3 {
     @apply text-3xl md:text-4xl;
   }
-
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -163,7 +149,6 @@
     @apply cursor-pointer;
   }
 }
-
 
 @layer components {
   /**
