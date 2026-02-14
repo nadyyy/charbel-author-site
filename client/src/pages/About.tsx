@@ -59,10 +59,10 @@ export default function About() {
 <div className="space-y-6 sans-body text-gray-700 text-lg leading-relaxed">
 
               <p>
-                His literary journey began with a deep exploration of identity and impermanence, themes that permeate his debut collection, <span className="text-[#d4af37] font-semibold">Carrefour</span>. This work confronts what fades and what endures, presenting a poetic meditation on power, loss, and the human condition.
+                His literary journey began with a sense of raw honesty and survival. Anchored by the semicolon symbol, a mark of continuation and pause,<span className="text-[#d4af37] font-semibold"> Carrefour</span> navigates darkness and storytelling with unflinching vulnerability. It is a visual and emotional journey that speaks to those who have felt lost and found themselves again.
               </p>
               <p>
-                His second collection, <span className="text-[#d4af37] font-semibold">Soldier Poet King</span>, shifts toward raw honesty and survival. Anchored by the semicolon symbol—a mark of continuation and pause—this work navigates darkness and storytelling with unflinching vulnerability. It is a visual and emotional journey that speaks to those who have felt lost and found themselves again.
+                His second collection, <span className="text-[#d4af37] font-semibold">Soldier Poet King</span>, shifts toward a deep exploration of identity and impermanence. This work confronts what fades and what endures, presenting a poetic meditation on power, loss, and the human condition.
               </p>
               <p>
                 With his upcoming third collection, <span className="text-[#d4af37] font-semibold">Encore</span>, Charbel continues to push the boundaries of contemporary poetry, exploring themes of memory, longing, and artistic legacy.
