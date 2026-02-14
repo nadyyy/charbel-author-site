@@ -30,39 +30,43 @@ export default function Contact() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.message) {
-      toast.error("Please fill in all fields");
+  if (!formData.name || !formData.email || !formData.message) {
+    toast.error("Please fill in all fields");
+    return;
+  }
+
+  if (!formData.email.includes("@") || !formData.email.toLowerCase().endsWith(".com")) {
+    toast.error("Please enter a valid .com email");
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+
+    const json = await res.json();
+
+    if (!res.ok) {
+      toast.error(json?.error || "Failed to send message");
       return;
     }
 
-    setIsSubmitting(true);
+    toast.success("Message sent successfully!");
+    setFormData({ name: "", email: "", message: "" });
+  } catch (err: any) {
+    toast.error(err?.message || "Something went wrong");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
-    try {
-      // Simulate form submission (in a real app, this would send to a backend)
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Create mailto link with contact details
-     const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=charbel_g_abdallah@hotmail.com&su=${encodeURIComponent(
-  `Website Contact: Message from ${formData.name}`
-)}&body=${encodeURIComponent(
-  `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
-)}`;
-
-window.open(gmailLink, "_blank");
-
-
-    
-
-      toast.success("Message prepared! Your email client will open.");
-      setFormData({ name: "", email: "", message: "" });
-    } catch (error) {
-      toast.error("Failed to send message. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white">
