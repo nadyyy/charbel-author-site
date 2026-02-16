@@ -707,17 +707,18 @@ const handlePlaceOrder = () => {
 
     <div className="mt-6 flex justify-end">
       <Button
-        type="button"
-        onClick={() => {
-          clearCart();            // ✅ clear here instead
-          setPlaceOrderOpen(false);
-          setPlaceOrderSuccess(false);
-          setLocation("/books");  // or "/" if you prefer
-        }}
-        className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
-      >
-        Continue
-      </Button>
+  type="button"
+  onClick={() => {
+    clearCart();
+    setPlaceOrderOpen(false);
+    setPlaceOrderSuccess(false);
+    setLocation("/");   // ✅ go to Home page
+  }}
+  className="bg-black text-white hover:bg-[#d4af37] hover:text-black"
+>
+  Continue
+</Button>
+
     </div>
   </>
 )
