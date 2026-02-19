@@ -1,5 +1,6 @@
-import { Route, Switch } from "wouter";
+// client/src/App.tsx
 
+import { Route, Switch } from "wouter";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -10,6 +11,7 @@ import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 import Home from "@/pages/Home";
 import Books from "@/pages/Books";
+import BookDetails from "@/pages/BookDetails"; // ✅ add
 import About from "@/pages/About";
 import Contact from "@/pages/Contact";
 import Cart from "@/pages/Cart";
@@ -22,13 +24,19 @@ function AppRoutes() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+
+      {/* ✅ Book details FIRST */}
+      <Route path="/books/:id">
+        {(params) => <BookDetails id={params.id} />}
+      </Route>
+
       <Route path="/books" component={Books} />
+
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
       <Route path="/cart" component={Cart} />
       <Route path="/accessories" component={Accessories} />
 
-      {/* catch-all */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -40,7 +48,6 @@ export default function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-
           <div className="flex flex-col min-h-screen bg-white text-black">
             <Navigation />
             <main className="flex-1">
