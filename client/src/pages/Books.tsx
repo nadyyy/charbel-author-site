@@ -73,25 +73,24 @@ export default function Books() {
             {books.map((book, index) => (
               <div
                 key={book.id}
-                className={`book-card p-0 overflow-hidden flex flex-col ${
+                className={`book-card p-0 overflow-hidden flex flex-col cursor-pointer ${
                   index === 1 ? "md:mt-8" : ""
                 }`}
+                role="button"
+                tabIndex={0}
+                onClick={() => setLocation(`/books/${book.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") setLocation(`/books/${book.id}`);
+                }}
               >
-                {/* ✅ Book Cover (clickable) */}
-                <div
-                  className="p-6 flex justify-center cursor-pointer"
-                  onClick={() => setLocation(`/books/${book.id}`)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") setLocation(`/books/${book.id}`);
-                  }}
-                >
+                {/* ✅ Book Cover */}
+                <div className="p-6 flex justify-center">
                   <div className="inline-block bg-white shadow-md shadow-black/25">
                     <img
                       src={book.image}
                       alt={book.title}
                       className="block max-h-96 w-auto"
+                      draggable={false}
                     />
                   </div>
                 </div>
@@ -118,7 +117,13 @@ export default function Books() {
                   {book.available ? (
                     <Button
                       className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
-                      onClick={() => openFreebiePicker(book)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openFreebiePicker(book);
+                      }}
+                      onKeyDown={(e) => {
+                        e.stopPropagation();
+                      }}
                     >
                       Add to Cart
                     </Button>
@@ -126,6 +131,8 @@ export default function Books() {
                     <Button
                       disabled
                       className="w-full bg-gray-300 text-gray-600 cursor-not-allowed font-medium"
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
                     >
                       Coming Soon
                     </Button>
