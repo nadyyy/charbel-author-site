@@ -26,6 +26,47 @@ function buildPrettyUrlFromCurrent(title: string) {
   return u.toString();
 }
 
+type LongCopy = {
+  tagline?: string;
+  paragraphs: string[];
+  stanza?: string[];
+};
+
+const LONG_COPY: Record<number, LongCopy> = {
+  1: {
+    tagline: "The origin. The raw confession.",
+    paragraphs: [
+      "Carrefour is Charbel’s most autobiographical and unfiltered work. It reads like an open diary — mental health struggles, fear, panic attacks, forbidden love, suicidal ideation, identity crisis, vulnerability, and survival in a world that feels hostile.",
+      "It is the crossroads — exactly as the title suggests.",
+      "Where Soldier, Poet, King is theatrical and symbolic, and Encore is reflective and poetic, Carrefour is direct, confessional, and emotionally naked. It is the foundation — the psychological and emotional terrain from which the other two books rise.",
+    ],
+    stanza: [
+      "Between life and death.",
+      "Between love and destruction.",
+      "Between wanting to stay and wanting to disappear.",
+    ],
+  },
+  2: {
+    tagline: "A poetic trilogy of identity, love, ego, and self-destruction.",
+    paragraphs: [
+      "Soldier, Poet, King follows a man divided into three archetypes: the fighter shaped by trauma, the lover ruled by emotion, and the ruler chasing pride and power. Through intense, raw, and often brutal poetry, the book explores toxic love, betrayal, masculinity, vulnerability, wounded ego, and the cost of refusing to let go.",
+      "It is a story of wars fought in bedrooms instead of battlefields, crowns made of thorns instead of gold, and a man constantly oscillating between strength and fragility. At its core, it asks:",
+      "What am I, if not a soldier, a king, and the poet in between?",
+      "Dark, dramatic, theatrical — this is love as war and identity as a battlefield.",
+    ],
+    stanza: ["The Soldier bleeds.", "The Poet feels.", "The King falls."],
+  },
+  3: {
+    tagline: "The aftermath. The silence after the applause.",
+    paragraphs: [
+      "If Soldier, Poet, King was the performance, Encore is what happens when the lights dim. This book is quieter, heavier, more intimate. It deals with grief, growing older, death, memory, anxiety, destiny, and the ghosts that remain when love is gone.",
+      "It is not about crowns or battles. It is about ash. Breath. Survival.",
+      "From existential fear of turning twenty, to conversations with Death, to mourning someone who still breathes in memory, Encore feels like standing alone on a stage after everyone has left — asking whether you were ever meant to perform in the first place.",
+      "It is darker in a different way: less dramatic, more internal. Less war, more wound. Less ego, more soul.",
+    ],
+  },
+};
+
 export default function BookDetails({ id }: Props) {
   const { addBookWithGift } = useCart();
 
@@ -43,6 +84,12 @@ export default function BookDetails({ id }: Props) {
   const [selectedFreebieId, setSelectedFreebieId] = useState<string>("");
 
   const selectedGift = freebies.find((g) => g.id === selectedFreebieId) ?? null;
+
+  const [longOpen, setLongOpen] = useState(false);
+
+  useEffect(() => {
+    setLongOpen(false);
+  }, [book?.id]);
 
   useEffect(() => {
     if (!book) return;
@@ -111,7 +158,6 @@ export default function BookDetails({ id }: Props) {
       }
     } catch (e: any) {
       if (e?.name === "AbortError") return;
-      // fall through to copy
     }
 
     try {
@@ -155,6 +201,8 @@ export default function BookDetails({ id }: Props) {
       </div>
     );
   }
+
+  const longCopy = LONG_COPY[book.id];
 
   return (
     <div className="min-h-screen bg-white">
@@ -216,7 +264,8 @@ export default function BookDetails({ id }: Props) {
 
       <section className="pb-14 md:pb-24">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-[400px_1fr] gap-7 md:gap-12 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-[420px_1fr] gap-7 md:gap-12 items-start">
+            {/* LEFT: Cover + price + CTA */}
             <div className="overflow-hidden border border-gray-100 bg-white">
               <div className="p-5 md:p-6 flex justify-center">
                 <div className="inline-block bg-white shadow-md shadow-black/25">
@@ -229,56 +278,105 @@ export default function BookDetails({ id }: Props) {
               </div>
 
               <div className="px-5 md:px-6 pb-5 md:pb-6">
-                {book.available && freebies.length > 0 ? (
-                  <p className="text-xs uppercase tracking-wide text-gray-500 text-center md:text-left">
-                    Includes a free gift
-                  </p>
-                ) : (
-                  <div className="h-[14px]" />
-                )}
+                <div className="text-center">
+                  {book.available ? (
+                    <p className="text-[#d4af37] font-semibold text-xl">
+                      {book.price}
+                    </p>
+                  ) : (
+                    <p className="text-gray-500 font-medium text-lg">Coming Soon</p>
+                  )}
+                </div>
+
+                <div className="mt-4">
+                  {book.available ? (
+                    <Button
+                      className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
+                      onClick={openFreebiePicker}
+                    >
+                      Add to Cart
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled
+                      className="w-full bg-gray-300 text-gray-600 cursor-not-allowed font-medium"
+                    >
+                      Coming Soon
+                    </Button>
+                  )}
+                </div>
+
+                <div className="mt-4">
+                  {book.available && freebies.length > 0 ? (
+                    <p className="text-xs uppercase tracking-wide text-gray-500 text-center">
+                      Includes a free gift
+                    </p>
+                  ) : (
+                    <div className="h-[14px]" />
+                  )}
+                </div>
               </div>
             </div>
 
-            <div className="pt-0 md:pt-2">
-              <div className="mb-5 text-center md:text-left">
-                {book.available ? (
-                  <p className="text-[#d4af37] font-semibold text-xl">
-                    {book.price}
-                  </p>
-                ) : (
-                  <p className="text-gray-500 font-medium text-lg">Coming Soon</p>
-                )}
-              </div>
+            {/* RIGHT: Description section (long copy only) */}
+            <div className="border border-gray-100 bg-white p-5 md:p-6">
+              <h2 className="serif-title text-2xl md:text-3xl text-black text-center md:text-left">
+                Description
+              </h2>
+              <div className="gold-divider mt-4 mb-6 md:mx-0 mx-auto"></div>
 
-              <p className="sans-body text-gray-600 text-base leading-relaxed mb-5">
-                {book.description}
-              </p>
-
-              {book.detailBlurb ? (
-                <p className="sans-body text-gray-600 text-base leading-relaxed mb-6">
-                  {book.detailBlurb}
+              {longCopy?.tagline ? (
+                <p className="serif-title text-base italic text-gray-800 mb-5 text-center md:text-left">
+                  {longCopy.tagline}
                 </p>
               ) : null}
 
-              <blockquote className="serif-title text-base italic text-gray-700 mb-8 border-l-2 border-[#d4af37] pl-4">
-                "{book.quote}"
-              </blockquote>
+              {longCopy ? (
+                <div className="relative">
+                  <div
+                    className={[
+                      "space-y-4",
+                      longOpen ? "" : "max-h-64 overflow-hidden",
+                    ].join(" ")}
+                  >
+                    {longCopy.paragraphs.map((p, idx) => (
+                      <p
+                        key={idx}
+                        className="sans-body text-base leading-relaxed text-gray-700"
+                      >
+                        {p}
+                      </p>
+                    ))}
 
-              {book.available ? (
-                <Button
-                  className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
-                  onClick={openFreebiePicker}
+                    {longCopy.stanza && longCopy.stanza.length > 0 ? (
+                      <div className="mt-2 border-l-2 border-[#d4af37] pl-4 space-y-1">
+                        {longCopy.stanza.map((line, idx) => (
+                          <p
+                            key={idx}
+                            className="serif-title text-base italic text-gray-700"
+                          >
+                            {line}
+                          </p>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {!longOpen ? (
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-b from-transparent to-white" />
+                  ) : null}
+                </div>
+              ) : null}
+
+              {longCopy ? (
+                <button
+                  type="button"
+                  onClick={() => setLongOpen((v) => !v)}
+                  className="mt-4 sans-body text-sm font-medium text-black hover:text-[#d4af37] transition-colors"
                 >
-                  Add to Cart
-                </Button>
-              ) : (
-                <Button
-                  disabled
-                  className="w-full bg-gray-300 text-gray-600 cursor-not-allowed font-medium"
-                >
-                  Coming Soon
-                </Button>
-              )}
+                  {longOpen ? "Read less" : "Read more"}
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
