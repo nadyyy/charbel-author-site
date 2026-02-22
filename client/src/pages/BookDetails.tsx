@@ -37,8 +37,9 @@ const LONG_COPY: Record<number, LongCopy> = {
     tagline: "The origin. The raw confession.",
     paragraphs: [
       "Carrefour is Charbel’s most autobiographical and unfiltered work. It reads like an open diary — mental health struggles, fear, panic attacks, forbidden love, suicidal ideation, identity crisis, vulnerability, and survival in a world that feels hostile.",
-      "It is the crossroads — exactly as the title suggests.",
       "Where Soldier, Poet, King is theatrical and symbolic, and Encore is reflective and poetic, Carrefour is direct, confessional, and emotionally naked. It is the foundation — the psychological and emotional terrain from which the other two books rise.",
+
+       "It is the crossroads — exactly as the title suggests.",
     ],
     stanza: [
       "Between life and death.",
@@ -62,8 +63,9 @@ const LONG_COPY: Record<number, LongCopy> = {
       "If Soldier, Poet, King was the performance, Encore is what happens when the lights dim. This book is quieter, heavier, more intimate. It deals with grief, growing older, death, memory, anxiety, destiny, and the ghosts that remain when love is gone.",
       "It is not about crowns or battles. It is about ash. Breath. Survival.",
       "From existential fear of turning twenty, to conversations with Death, to mourning someone who still breathes in memory, Encore feels like standing alone on a stage after everyone has left — asking whether you were ever meant to perform in the first place.",
-      "It is darker in a different way: less dramatic, more internal. Less war, more wound. Less ego, more soul.",
+      "It is darker in a different way: ",
     ],
+    stanza: ["less dramatic, more internal.", "Less war, more wound.", "Less ego, more soul."],
   },
 };
 
@@ -320,10 +322,10 @@ export default function BookDetails({ id }: Props) {
 
             {/* RIGHT: Description section (long copy only) */}
             <div className="border border-gray-100 bg-white p-5 md:p-6">
-              <h2 className="serif-title text-2xl md:text-3xl text-black text-center md:text-left">
-                Description
+             <h2 className="serif-title text-2xl md:text-3xl text-black text-center">
+               Description
               </h2>
-              <div className="gold-divider mt-4 mb-6 md:mx-0 mx-auto"></div>
+              <div className="gold-divider mt-4 mb-7 mx-auto h-[1px] md:h-[0.5px]"/>
 
               {longCopy?.tagline ? (
                 <p className="serif-title text-base italic text-gray-800 mb-5 text-center md:text-left">
