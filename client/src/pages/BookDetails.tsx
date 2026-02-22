@@ -65,7 +65,7 @@ const LONG_COPY: Record<number, LongCopy> = {
       "From existential fear of turning twenty, to conversations with Death, to mourning someone who still breathes in memory, Encore feels like standing alone on a stage after everyone has left — asking whether you were ever meant to perform in the first place.",
       "It is darker in a different way: ",
     ],
-    stanza: ["less dramatic, more internal.", "Less war, more wound.", "Less ego, more soul."],
+    stanza: ["Less dramatic, more internal.", "Less war, more wound.", "Less ego, more soul."],
   },
 };
 
