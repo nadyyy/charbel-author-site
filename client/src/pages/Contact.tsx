@@ -12,6 +12,9 @@ import { toast } from "sonner";
  */
 
 export default function Contact() {
+  const isValidEmail = (value: string) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim().toLowerCase());
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -37,8 +40,8 @@ export default function Contact() {
     return;
   }
 
-  if (!formData.email.includes("@") || !formData.email.toLowerCase().endsWith(".com")) {
-    toast.error("Please enter a valid .com email");
+  if (!isValidEmail(formData.email)) {
+    toast.error("Please enter a valid email");
     return;
   }
 

@@ -6,6 +6,8 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { ENV, validateServerEnv } from "./env";
+import { applySecurityMiddleware } from "./security";
 import { serveStatic, setupVite } from "./vite";
 
 function isPortAvailable(port: number): Promise<boolean> {
@@ -28,11 +30,23 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  const validation = validateServerEnv();
+  if (!validation.ok) {
+    throw new Error(
+      `Invalid server environment configuration:\n- ${validation.errors.join("\n- ")}`
+    );
+  }
+  if (validation.warnings.length > 0) {
+    console.warn(
+      `[Security] Environment warnings:\n- ${validation.warnings.join("\n- ")}`
+    );
+  }
+
   const app = express();
   const server = createServer(app);
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  applySecurityMiddleware(app);
+  app.use(express.json({ limit: "256kb", strict: true }));
+  app.use(express.urlencoded({ limit: "64kb", extended: false }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API
@@ -44,7 +58,7 @@ async function startServer() {
     })
   );
   // development mode uses Vite, production mode uses static files
-  if (process.env.NODE_ENV === "development") {
+  if (!ENV.isProduction) {
     await setupVite(app, server);
   } else {
     serveStatic(app);

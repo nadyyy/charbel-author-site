@@ -27,6 +27,8 @@ export type SessionPayload = {
 const EXCHANGE_TOKEN_PATH = `/webdev.v1.WebDevAuthPublicService/ExchangeToken`;
 const GET_USER_INFO_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserInfo`;
 const GET_USER_INFO_WITH_JWT_PATH = `/webdev.v1.WebDevAuthPublicService/GetUserInfoWithJwt`;
+const SESSION_ISSUER = "charbel-author-site";
+const MIN_SESSION_SECRET_LENGTH = 32;
 
 class OAuthService {
   constructor(private client: ReturnType<typeof axios.create>) {
@@ -39,8 +41,16 @@ class OAuthService {
   }
 
   private decodeState(state: string): string {
-    const redirectUri = atob(state);
-    return redirectUri;
+    try {
+      const normalized = state.replaceAll("-", "+").replaceAll("_", "/");
+      const padding = normalized.length % 4 === 0 ? "" : "=".repeat(4 - (normalized.length % 4));
+      const redirectUri = Buffer.from(`${normalized}${padding}`, "base64").toString("utf-8");
+      // Ensure we only pass well-formed redirect URLs to OAuth exchange.
+      new URL(redirectUri);
+      return redirectUri;
+    } catch {
+      throw new Error("Invalid OAuth state payload");
+    }
   }
 
   async getTokenByCode(
@@ -156,6 +166,11 @@ class SDKServer {
 
   private getSessionSecret() {
     const secret = ENV.cookieSecret;
+    if (secret.length < MIN_SESSION_SECRET_LENGTH) {
+      throw new Error(
+        `JWT_SECRET must be at least ${MIN_SESSION_SECRET_LENGTH} characters`
+      );
+    }
     return new TextEncoder().encode(secret);
   }
 
@@ -193,6 +208,9 @@ class SDKServer {
       name: payload.name,
     })
       .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+      .setIssuedAt()
+      .setIssuer(SESSION_ISSUER)
+      .setAudience(ENV.appId)
       .setExpirationTime(expirationSeconds)
       .sign(secretKey);
   }
@@ -209,15 +227,22 @@ class SDKServer {
       const secretKey = this.getSessionSecret();
       const { payload } = await jwtVerify(cookieValue, secretKey, {
         algorithms: ["HS256"],
+        issuer: SESSION_ISSUER,
+        audience: ENV.appId,
       });
       const { openId, appId, name } = payload as Record<string, unknown>;
 
       if (
         !isNonEmptyString(openId) ||
         !isNonEmptyString(appId) ||
-        !isNonEmptyString(name)
+        typeof name !== "string"
       ) {
         console.warn("[Auth] Session payload missing required fields");
+        return null;
+      }
+
+      if (appId !== ENV.appId) {
+        console.warn("[Auth] Session appId mismatch");
         return null;
       }
 

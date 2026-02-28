@@ -135,7 +135,7 @@ const [placeOrderSuccess, setPlaceOrderSuccess] = useState(false);
 
 
   const isValidEmail =
-  email.trim().includes("@") && email.trim().toLowerCase().endsWith(".com");
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim().toLowerCase());
 
   // ✅ VALIDATION
  const isValid =
@@ -359,7 +359,7 @@ const handlePlaceOrder = () => {
 
 {email.trim().length > 0 && !isValidEmail && (
   <p className="text-xs text-red-600 md:col-span-2">
-    Email must include @ and end with .com
+    Please enter a valid email address
   </p>
 )}
 
