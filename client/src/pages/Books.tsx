@@ -36,7 +36,7 @@ export default function Books() {
       {
         id: String(pendingBook.id),
         title: pendingBook.title,
-        price: parseInt(String(pendingBook.price).replace("$", ""), 10),
+        price: pendingBook.cartPrice,
         image: pendingBook.image,
         kind: "book",
       },
@@ -125,7 +125,7 @@ export default function Books() {
                         e.stopPropagation();
                       }}
                     >
-                      Add to Cart
+                      {book.listCtaLabel ?? "Add to Cart"}
                     </Button>
                   ) : (
                     <Button

@@ -125,7 +125,7 @@ export default function BookDetails({ id }: Props) {
       {
         id: String(book.id),
         title: book.title,
-        price: parseInt(String(book.price).replace("$", ""), 10),
+        price: book.cartPrice,
         image: book.image,
         kind: "book",
       },
@@ -296,7 +296,7 @@ export default function BookDetails({ id }: Props) {
                       className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
                       onClick={openFreebiePicker}
                     >
-                      Add to Cart
+                      {book.detailCtaLabel ?? "Add to Cart"}
                     </Button>
                   ) : (
                     <Button

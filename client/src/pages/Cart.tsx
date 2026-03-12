@@ -62,6 +62,13 @@ export default function Cart() {
         image: "/accessories/soldier-bookmark.jpeg",
       },
     ],
+    3: [
+      {
+        id: "bookmark-encore",
+        title: "Encore Bookmark",
+        image: "/accessories/encore-bookmark.jpeg",
+      },
+    ],
   };
 
   const [freebieOpen, setFreebieOpen] = useState(false);

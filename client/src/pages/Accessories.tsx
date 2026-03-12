@@ -12,6 +12,7 @@ type AccessoryItem = {
   kind: ItemKind;
   note?: string; // e.g. "Free with Carrefour" OR bracelet tagline
   comingSoon?: boolean;
+  ctaLabel?: string;
 };
 
 export default function Accessories() {
@@ -100,7 +101,7 @@ export default function Accessories() {
         note: "Free with Carrefour",
       },
 
-      // Encore bookmark (coming soon)
+      // Encore bookmark
       {
         id: "bookmark-encore",
         title: "Encore Bookmark",
@@ -108,7 +109,7 @@ export default function Accessories() {
         image: "/accessories/encore-bookmark.jpeg",
         kind: "bookmark",
         note: "Free with Encore",
-        comingSoon: true,
+        ctaLabel: "Place Order",
       },
     ],
     []
@@ -219,7 +220,7 @@ export default function Accessories() {
             disabled={item.comingSoon}
             onClick={() => handleAdd(item)}
           >
-            {item.comingSoon ? "Coming Soon" : "Add to Cart"}
+            {item.ctaLabel ?? (item.comingSoon ? "Coming Soon" : "Add to Cart")}
           </Button>
         </div>
       </div>

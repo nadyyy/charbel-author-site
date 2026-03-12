@@ -97,7 +97,7 @@ export default function Home() {
     <div className="absolute -top-10 left-1/2 -translate-x-1/2">
 
       <span className="text-[12px] uppercase tracking-[0.37em] font-bold text-[#d4af37]">
-  Coming Soon
+  Latest Release
 </span>
 
     </div>

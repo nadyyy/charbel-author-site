@@ -7,13 +7,16 @@ export type Freebie = {
 export type Book = {
   id: number;
   title: string;
-  price: string; // "$15" | "$20" | "Coming Soon"
+  price: string; // display price, e.g. "$15" | "$20" | "Coming Soon"
+  cartPrice: number;
   description: string;
   quote: string;
   image: string;
   available: boolean;
   freebies?: Freebie[]; // only for books that include a free gift
   detailBlurb?: string; // extra paragraph for BookDetails (you’ll edit later)
+  listCtaLabel?: string;
+  detailCtaLabel?: string;
 };
 
 export const books: Book[] = [
@@ -21,6 +24,7 @@ export const books: Book[] = [
     id: 1,
     title: "Carrefour",
     price: "$15",
+    cartPrice: 15,
     description:
       "Raw and honest, Carrefour navigates darkness, survival, and storytelling. A visual and emotional journey anchored by the semicolon symbol.",
     detailBlurb:
@@ -38,6 +42,7 @@ export const books: Book[] = [
     id: 2,
     title: "Soldier Poet King",
     price: "$20",
+    cartPrice: 20,
     description:
       "A poetic exploration of identity, impermanence, and power. Evocative and bold, this collection confronts what fades and what endures.",
     detailBlurb:
@@ -55,13 +60,22 @@ export const books: Book[] = [
   {
     id: 3,
     title: "Encore",
-    price: "Coming Soon",
+    price: "$10",
+    cartPrice: 10,
     description:
       "The upcoming third collection from Charbel Abdallah. Encore is a continuation of poetic intensity, touching memory, longing, and artistic legacy.",
     detailBlurb:
       "A continuation of the same poetic intensity—sharper, quieter, and closer to the core.",
     quote: "Stay tuned for what's next.",
     image: "/books/encore.png",
-    available: false,
+    available: true,
+    freebies: [
+      {
+        id: "bookmark-encore",
+        title: "Encore Bookmark",
+        image: "/accessories/encore-bookmark.jpeg",
+      },
+    ],
+    detailCtaLabel: "Place Order",
   },
 ];
