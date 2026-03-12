@@ -63,10 +63,10 @@ export const books: Book[] = [
     price: "$10",
     cartPrice: 10,
     description:
-      "The upcoming third collection from Charbel Abdallah. Encore is a continuation of poetic intensity, touching memory, longing, and artistic legacy.",
+      "The newly released third collection from Charbel Abdallah. Encore is a continuation of poetic intensity, touching memory, longing, and artistic legacy.",
     detailBlurb:
       "A continuation of the same poetic intensity—sharper, quieter, and closer to the core.",
-    quote: "Stay tuned for what's next.",
+    quote: "I was here. I felt it all",
     image: "/books/encore.png",
     available: true,
     freebies: [

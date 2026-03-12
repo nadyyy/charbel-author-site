@@ -94,9 +94,9 @@ export default function Home() {
     />
 
     {/* anticipation label */}
-    <div className="absolute -top-10 left-1/2 -translate-x-1/2">
+    <div className="absolute -top-10 md:-top-10 left-1/2 -translate-x-1/2 z-20">
 
-      <span className="text-[12px] uppercase tracking-[0.37em] font-bold text-[#d4af37]">
+      <span className="whitespace-nowrap text-[11px] md:text-[12px] uppercase tracking-[0.28em] md:tracking-[0.37em] font-bold text-[#d4af37]">
   Latest Release
 </span>
 
