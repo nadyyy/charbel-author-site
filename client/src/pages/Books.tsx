@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
+import EbookDownloadModal from "@/components/EbookDownloadModal";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { books, type Book } from "@/data/BookData";
+import { books, type Book, isEbookBook } from "@/data/BookData";
 
 /**
  * Design: Minimalist Luxury
@@ -16,6 +17,8 @@ export default function Books() {
   const [freebieOpen, setFreebieOpen] = useState(false);
   const [pendingBook, setPendingBook] = useState<Book | null>(null);
   const [selectedFreebieId, setSelectedFreebieId] = useState<string>("");
+  const [ebookOpen, setEbookOpen] = useState(false);
+  const [pendingEbook, setPendingEbook] = useState<Book | null>(null);
 
   const openFreebiePicker = (book: Book) => {
     const options = book.freebies ?? [];
@@ -51,6 +54,16 @@ export default function Books() {
     setPendingBook(null);
   };
 
+  const openPrimaryAction = (book: Book) => {
+    if (isEbookBook(book)) {
+      setPendingEbook(book);
+      setEbookOpen(true);
+      return;
+    }
+
+    openFreebiePicker(book);
+  };
+
   const selectedGift =
     pendingBook ? (pendingBook.freebies ?? []).find((g) => g.id === selectedFreebieId) : null;
 
@@ -75,6 +88,8 @@ export default function Books() {
                 key={book.id}
                 className={`book-card p-0 overflow-hidden flex flex-col cursor-pointer ${
                   index === 1 ? "md:mt-8" : ""
+                } ${
+                  books.length % 3 === 1 && index === books.length - 1 ? "md:col-start-2" : ""
                 }`}
                 role="button"
                 tabIndex={0}
@@ -119,7 +134,7 @@ export default function Books() {
                       className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
                       onClick={(e) => {
                         e.stopPropagation();
-                        openFreebiePicker(book);
+                        openPrimaryAction(book);
                       }}
                       onKeyDown={(e) => {
                         e.stopPropagation();
@@ -143,6 +158,15 @@ export default function Books() {
           </div>
         </div>
       </section>
+
+      <EbookDownloadModal
+        open={ebookOpen}
+        book={pendingEbook}
+        onClose={() => {
+          setEbookOpen(false);
+          setPendingEbook(null);
+        }}
+      />
 
       {/* ✅ Freebie Modal */}
       {freebieOpen && pendingBook && (

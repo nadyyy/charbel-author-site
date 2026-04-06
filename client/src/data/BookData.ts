@@ -4,6 +4,8 @@ export type Freebie = {
   image: string;
 };
 
+export type BookPurchaseType = "physical" | "ebook";
+
 export type Book = {
   id: number;
   title: string;
@@ -17,6 +19,8 @@ export type Book = {
   detailBlurb?: string; // extra paragraph for BookDetails (you’ll edit later)
   listCtaLabel?: string;
   detailCtaLabel?: string;
+  purchaseType?: BookPurchaseType;
+  downloadPath?: string;
 };
 
 export const books: Book[] = [
@@ -78,4 +82,25 @@ export const books: Book[] = [
     ],
     detailCtaLabel: "Place Order",
   },
+  {
+    id: 4,
+    title: "Icarus",
+    price: "Free E-Book",
+    cartPrice: 0,
+    description:
+      "A deeply personal collection of poetry born from loss, memory, and love that refuses to fade. Minimalist in form yet heavy in emotion, Icarus speaks to anyone who has loved deeply and lost unfairly.",
+    detailBlurb:
+      "Written as a tribute to a brother, a friend, a soul gone too soon, Icarus explores grief not as an end, but as a transformation.",
+    quote: "Of learning that even when wings melt, something in us still learns how to fly.",
+    image: "/books/icarus.png",
+    available: true,
+    purchaseType: "ebook",
+    downloadPath: "/books/icarus.pdf",
+    listCtaLabel: "Download PDF",
+    detailCtaLabel: "Download PDF",
+  },
 ];
+
+export function isEbookBook(book: Book) {
+  return book.purchaseType === "ebook";
+}

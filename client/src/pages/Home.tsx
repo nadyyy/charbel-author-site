@@ -130,7 +130,7 @@ export default function Home() {
             Discover His Works
           </h2>
           <p className="sans-body text-gray-700 text-lg mb-8 max-w-2xl mx-auto">
-            Three collections of poetry and prose that explore the depths of human experience, from resilience to introspection.
+            Four published works of poetry and prose that explore the depths of human experience, from resilience to introspection.
           </p>
           <Link href="/books">
             <Button className="bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium px-8 py-3">

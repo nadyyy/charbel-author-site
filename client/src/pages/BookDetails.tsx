@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
+import EbookDownloadModal from "@/components/EbookDownloadModal";
 import { useCart } from "@/contexts/CartContext";
-import { books } from "@/data/BookData";
+import { books, isEbookBook } from "@/data/BookData";
 import { Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
@@ -67,6 +68,16 @@ const LONG_COPY: Record<number, LongCopy> = {
     ],
     stanza: ["Less dramatic, more internal.", "Less war, more wound.", "Less ego, more soul."],
   },
+  4: {
+    tagline: "Not everyone who falls is meant to be mourned loudly.",
+    paragraphs: [
+      "Icarus is a deeply personal collection of poetry born from loss, memory, and love that refuses to fade. Written as a tribute to a brother, a friend, a soul gone too soon, this book explores grief not as an end, but as a transformation.",
+      "Through raw and intimate verses, this book captures the quiet moments of absence: the unanswered calls, the sleepless nights, the questions that echo long after someone is gone.",
+      "This is a story of remembering. Of holding on. Of learning that even when wings melt, something in us still learns how to fly.",
+      "Minimalist in form yet heavy in emotion, Icarus speaks to anyone who has loved deeply and lost unfairly, and to those who continue to carry that love forward.",
+    ],
+    stanza: ["A quiet elegy.", "Minimalist in form.", "Heavy in emotion."],
+  },
 };
 
 export default function BookDetails({ id }: Props) {
@@ -84,6 +95,7 @@ export default function BookDetails({ id }: Props) {
 
   const [freebieOpen, setFreebieOpen] = useState(false);
   const [selectedFreebieId, setSelectedFreebieId] = useState<string>("");
+  const [ebookOpen, setEbookOpen] = useState(false);
 
   const selectedGift = freebies.find((g) => g.id === selectedFreebieId) ?? null;
 
@@ -91,6 +103,7 @@ export default function BookDetails({ id }: Props) {
 
   useEffect(() => {
     setLongOpen(false);
+    setEbookOpen(false);
   }, [book?.id]);
 
   useEffect(() => {
@@ -113,6 +126,17 @@ export default function BookDetails({ id }: Props) {
 
     setSelectedFreebieId(freebies[0].id);
     setFreebieOpen(true);
+  };
+
+  const handlePrimaryAction = () => {
+    if (!book || !book.available) return;
+
+    if (isEbookBook(book)) {
+      setEbookOpen(true);
+      return;
+    }
+
+    openFreebiePicker();
   };
 
   const confirmFreebie = () => {
@@ -294,7 +318,7 @@ export default function BookDetails({ id }: Props) {
                   {book.available ? (
                     <Button
                       className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
-                      onClick={openFreebiePicker}
+                      onClick={handlePrimaryAction}
                     >
                       {book.detailCtaLabel ?? "Add to Cart"}
                     </Button>
@@ -309,7 +333,11 @@ export default function BookDetails({ id }: Props) {
                 </div>
 
                 <div className="mt-4">
-                  {book.available && freebies.length > 0 ? (
+                  {book.available && isEbookBook(book) ? (
+                    <p className="text-xs uppercase tracking-wide text-gray-500 text-center">
+                      Delivered instantly by email
+                    </p>
+                  ) : book.available && freebies.length > 0 ? (
                     <p className="text-xs uppercase tracking-wide text-gray-500 text-center">
                       Includes a free gift
                     </p>
@@ -383,6 +411,12 @@ export default function BookDetails({ id }: Props) {
           </div>
         </div>
       </section>
+
+      <EbookDownloadModal
+        open={ebookOpen}
+        book={isEbookBook(book) ? book : null}
+        onClose={() => setEbookOpen(false)}
+      />
 
       {freebieOpen && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center px-4">
