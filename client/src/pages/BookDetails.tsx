@@ -69,7 +69,6 @@ const LONG_COPY: Record<number, LongCopy> = {
     stanza: ["Less dramatic, more internal.", "Less war, more wound.", "Less ego, more soul."],
   },
   4: {
-    tagline: "Not everyone who falls is meant to be mourned loudly.",
     paragraphs: [
       "Icarus is a deeply personal collection of poetry born from loss, memory, and love that refuses to fade. Written as a tribute to a brother, a friend, a soul gone too soon, this book explores grief not as an end, but as a transformation.",
       "Through raw and intimate verses, this book captures the quiet moments of absence: the unanswered calls, the sleepless nights, the questions that echo long after someone is gone.",

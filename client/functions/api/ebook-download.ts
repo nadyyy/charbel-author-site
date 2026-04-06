@@ -128,6 +128,20 @@ export const onRequestPost = async (context: {
       `Email: ${email}\n` +
       `Download link: ${downloadUrl}\n`;
 
+    const readerEmailText =
+      `Dear Reader,\n\n` +
+      `Thank you for downloading Icarus.\n\n` +
+      `This book was not written lightly.\n` +
+      `It was written in memory, in loss, in love that had nowhere left to go. Every page carries a piece of someone who is no longer here, but refuses to be forgotten.\n\n` +
+      `Icarus is not just meant to be read.\n` +
+      `It is meant to be felt.\n\n` +
+      `Take your time with it.\n` +
+      `Pause where it hurts.\n` +
+      `Return to the lines that stay with you longer than they should.\n\n` +
+      `If even one poem echoes something inside you, then it has done what it was meant to do.\n\n` +
+      `Thank you for giving it a place in your hands.\n\n` +
+      `— Charbel Abdallah`;
+
     const buildHtml = (opts: {
       heading: string;
       intro: string;
@@ -161,11 +175,49 @@ export const onRequestPost = async (context: {
       intro: "A reader requested a free PDF download from your website.",
     });
 
+    const readerHtml = `
+      <div style="font-family:Arial,Helvetica,sans-serif;background:#f7f7f7;padding:24px;">
+        <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #eee;border-radius:14px;overflow:hidden;">
+          <div style="padding:18px 20px;background:#111;color:#fff;">
+            <div style="font-size:16px;font-weight:900;letter-spacing:.2px;">Icarus</div>
+            <div style="margin-top:4px;font-size:12px;opacity:.9;">charbelabdallah.com</div>
+          </div>
+
+          <div style="padding:20px;">
+            <div style="font-size:14px;color:#111;line-height:1.8;white-space:pre-line;">Dear Reader,
+
+Thank you for downloading Icarus.
+
+This book was not written lightly.
+It was written in memory, in loss, in love that had nowhere left to go. Every page carries a piece of someone who is no longer here, but refuses to be forgotten.
+
+Icarus is not just meant to be read.
+It is meant to be felt.
+
+Take your time with it.
+Pause where it hurts.
+Return to the lines that stay with you longer than they should.
+
+If even one poem echoes something inside you, then it has done what it was meant to do.
+
+Thank you for giving it a place in your hands.
+
+— Charbel Abdallah</div>
+
+            <div style="margin-top:18px;">
+              <a href="${safeDownloadUrl}" style="display:inline-block;background:#111;color:#fff;text-decoration:none;padding:12px 18px;border-radius:8px;font-size:14px;font-weight:700;">Download Icarus</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
     let ownerNotified = false;
+    let readerNotified = false;
     const resendApiKey = String(env.RESEND_API_KEY ?? "").trim();
 
     if (!resendApiKey) {
-      console.warn("[ebook-download] RESEND_API_KEY is not configured. Skipping owner email.");
+      console.warn("[ebook-download] RESEND_API_KEY is not configured. Skipping email sends.");
     } else {
       try {
         const resend = new Resend(resendApiKey);
@@ -182,8 +234,22 @@ export const onRequestPost = async (context: {
         } else {
           ownerNotified = true;
         }
+
+        const readerSend = await resend.emails.send({
+          from: "Charbel Abdallah <orders@charbelabdallah.com>",
+          to: [email],
+          subject: safeReplySubject("Icarus"),
+          text: readerEmailText,
+          html: readerHtml,
+        });
+
+        if ((readerSend as AnyRecord)?.error) {
+          console.error("[ebook-download] reader email failed:", (readerSend as AnyRecord).error);
+        } else {
+          readerNotified = true;
+        }
       } catch (sendError) {
-        console.error("[ebook-download] owner email request failed:", sendError);
+        console.error("[ebook-download] email request failed:", sendError);
       }
     }
 
@@ -192,6 +258,7 @@ export const onRequestPost = async (context: {
         success: true,
         downloadUrl,
         ownerNotified,
+        readerNotified,
       },
       200
     );

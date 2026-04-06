@@ -91,7 +91,7 @@ export const books: Book[] = [
       "A deeply personal collection of poetry born from loss, memory, and love that refuses to fade. Minimalist in form yet heavy in emotion, Icarus speaks to anyone who has loved deeply and lost unfairly.",
     detailBlurb:
       "Written as a tribute to a brother, a friend, a soul gone too soon, Icarus explores grief not as an end, but as a transformation.",
-    quote: "Of learning that even when wings melt, something in us still learns how to fly.",
+    quote: "Not everyone who falls is meant to be mourned loudly.",
     image: "/books/icarus.png",
     available: true,
     purchaseType: "ebook",
