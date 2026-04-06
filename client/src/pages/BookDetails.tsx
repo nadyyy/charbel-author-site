@@ -334,9 +334,7 @@ export default function BookDetails({ id }: Props) {
 
                 <div className="mt-4">
                   {book.available && isEbookBook(book) ? (
-                    <p className="text-xs uppercase tracking-wide text-gray-500 text-center">
-                      Delivered instantly by email
-                    </p>
+                    <div className="h-[14px]" />
                   ) : book.available && freebies.length > 0 ? (
                     <p className="text-xs uppercase tracking-wide text-gray-500 text-center">
                       Includes a free gift
