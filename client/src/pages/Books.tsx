@@ -3,7 +3,7 @@ import EbookDownloadModal from "@/components/EbookDownloadModal";
 import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { books, type Book, isEbookBook } from "@/data/BookData";
+import { books, type Book, isEbookBook, isLockedBook } from "@/data/BookData";
 
 /**
  * Design: Minimalist Luxury
@@ -129,7 +129,7 @@ export default function Books() {
                   </blockquote>
 
                   {/* CTA Button */}
-                  {book.available ? (
+                  {book.available && !isLockedBook(book) ? (
                     <Button
                       className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
                       onClick={(e) => {
@@ -149,7 +149,7 @@ export default function Books() {
                       onClick={(e) => e.stopPropagation()}
                       onKeyDown={(e) => e.stopPropagation()}
                     >
-                      Coming Soon
+                      {isLockedBook(book) ? book.lockedCtaLabel ?? "Available Soon" : "Coming Soon"}
                     </Button>
                   )}
                 </div>

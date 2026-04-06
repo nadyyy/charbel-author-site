@@ -21,6 +21,8 @@ export type Book = {
   detailCtaLabel?: string;
   purchaseType?: BookPurchaseType;
   downloadPath?: string;
+  isLocked?: boolean;
+  lockedCtaLabel?: string;
 };
 
 export const books: Book[] = [
@@ -96,6 +98,8 @@ export const books: Book[] = [
     available: true,
     purchaseType: "ebook",
     downloadPath: "/books/icarus.pdf",
+    isLocked: true,
+    lockedCtaLabel: "Available Soon",
     listCtaLabel: "Download PDF",
     detailCtaLabel: "Download PDF",
   },
@@ -103,4 +107,8 @@ export const books: Book[] = [
 
 export function isEbookBook(book: Book) {
   return book.purchaseType === "ebook";
+}
+
+export function isLockedBook(book: Book) {
+  return book.isLocked === true;
 }

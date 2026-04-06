@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import EbookDownloadModal from "@/components/EbookDownloadModal";
 import { useCart } from "@/contexts/CartContext";
-import { books, isEbookBook } from "@/data/BookData";
+import { books, isEbookBook, isLockedBook } from "@/data/BookData";
 import { Share2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "wouter";
@@ -129,6 +129,7 @@ export default function BookDetails({ id }: Props) {
 
   const handlePrimaryAction = () => {
     if (!book || !book.available) return;
+    if (isLockedBook(book)) return;
 
     if (isEbookBook(book)) {
       setEbookOpen(true);
@@ -314,7 +315,7 @@ export default function BookDetails({ id }: Props) {
                 </div>
 
                 <div className="mt-4">
-                  {book.available ? (
+                  {book.available && !isLockedBook(book) ? (
                     <Button
                       className="w-full bg-black text-white hover:bg-[#d4af37] hover:text-black transition-colors font-medium"
                       onClick={handlePrimaryAction}
@@ -326,7 +327,7 @@ export default function BookDetails({ id }: Props) {
                       disabled
                       className="w-full bg-gray-300 text-gray-600 cursor-not-allowed font-medium"
                     >
-                      Coming Soon
+                      {isLockedBook(book) ? book.lockedCtaLabel ?? "Available Soon" : "Coming Soon"}
                     </Button>
                   )}
                 </div>
